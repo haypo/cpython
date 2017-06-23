@@ -542,6 +542,9 @@ def main():
     execsitecustomize()
     if ENABLE_USER_SITE:
         execusercustomize()
+    if 'fat' in sys._xoptions:
+        import fatoptimizer
+        fatoptimizer._register()
 
 # Prevent extending of sys.path when python was started with -S and
 # site is imported later.
