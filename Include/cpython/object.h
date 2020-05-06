@@ -45,7 +45,11 @@ PyAPI_FUNC(Py_ssize_t) _Py_GetRefTotal(void);
 typedef struct _Py_Identifier {
     struct _Py_Identifier *next;
     const char* string;
+#ifdef EXPERIMENTAL_ISOLATED_SUBINTERPRETERS
+    _Atomic PyObject *object;
+#else
     PyObject *object;
+#endif
 } _Py_Identifier;
 
 #define _Py_static_string_init(value) { .next = NULL, .string = value, .object = NULL }

@@ -1519,7 +1519,7 @@ lookup_method(PyObject *self, _Py_Identifier *attrid, int *unbound)
 {
     PyObject *res = lookup_maybe_method(self, attrid, unbound);
     if (res == NULL && !PyErr_Occurred()) {
-        PyErr_SetObject(PyExc_AttributeError, attrid->object);
+        PyErr_SetObject(PyExc_AttributeError, _PyUnicode_FromId(attrid));
     }
     return res;
 }

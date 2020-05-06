@@ -2276,17 +2276,33 @@ PyObject *
 _PyUnicode_FromId(_Py_Identifier *id)
 {
     if (!id->object) {
-        id->object = PyUnicode_DecodeUTF8Stateful(id->string,
-                                                  strlen(id->string),
-                                                  NULL, NULL);
-        if (!id->object)
+        PyObject *object = PyUnicode_DecodeUTF8Stateful(id->string,
+                                                        strlen(id->string),
+                                                        NULL, NULL);
+        if (!object) {
             return NULL;
-        PyUnicode_InternInPlace(&id->object);
+        }
+        PyUnicode_InternInPlace(&object);
+
+#ifdef EXPERIMENTAL_ISOLATED_SUBINTERPRETERS
+        if (id->object != NULL) {
+            // Race condition!
+            Py_DECREF(object);
+            return (PyObject *)id->object;
+        }
+        id->object = (_Atomic PyObject *)object;
+#else
+        id->object = object;
+#endif
         assert(!id->next);
         id->next = static_strings;
         static_strings = id;
     }
+#ifdef EXPERIMENTAL_ISOLATED_SUBINTERPRETERS
+    return (PyObject *)id->object;
+#else
     return id->object;
+#endif
 }
 
 void
