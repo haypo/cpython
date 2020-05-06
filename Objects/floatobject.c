@@ -22,10 +22,19 @@ class float "PyObject *" "&PyFloat_Type"
 */
 
 #ifndef PyFloat_MAXFREELIST
-#define PyFloat_MAXFREELIST    100
+#  define PyFloat_MAXFREELIST    100
 #endif
+
+/* bpo-40521: list free lists are shared by all interpreters. */
+#ifdef EXPERIMENTAL_ISOLATED_SUBINTERPRETERS
+#  undef PyFloat_MAXFREELIST
+#  define PyFloat_MAXFREELIST 0
+#endif
+
+#if PyFloat_MAXFREELIST > 0
 static int numfree = 0;
 static PyFloatObject *free_list = NULL;
+#endif
 
 double
 PyFloat_GetMax(void)
@@ -115,11 +124,16 @@ PyFloat_GetInfo(void)
 PyObject *
 PyFloat_FromDouble(double fval)
 {
-    PyFloatObject *op = free_list;
+    PyFloatObject *op;
+#if PyFloat_MAXFREELIST > 0
+    op = free_list;
     if (op != NULL) {
         free_list = (PyFloatObject *) Py_TYPE(op);
         numfree--;
-    } else {
+    }
+    else
+#endif
+    {
         op = (PyFloatObject*) PyObject_MALLOC(sizeof(PyFloatObject));
         if (!op)
             return PyErr_NoMemory();
@@ -217,16 +231,20 @@ static void
 float_dealloc(PyFloatObject *op)
 {
     if (PyFloat_CheckExact(op)) {
-        if (numfree >= PyFloat_MAXFREELIST)  {
-            PyObject_FREE(op);
+#if PyFloat_MAXFREELIST > 0
+        if (numfree < PyFloat_MAXFREELIST)  {
+            numfree++;
+            Py_SET_TYPE(op, (PyTypeObject *)free_list);
+            free_list = op;
             return;
         }
-        numfree++;
-        Py_SET_TYPE(op, (PyTypeObject *)free_list);
-        free_list = op;
+#endif
+
+        PyObject_FREE(op);
     }
-    else
+    else {
         Py_TYPE(op)->tp_free((PyObject *)op);
+    }
 }
 
 double
@@ -2001,6 +2019,7 @@ _PyFloat_Init(void)
 void
 _PyFloat_ClearFreeList(void)
 {
+#if PyFloat_MAXFREELIST > 0
     PyFloatObject *f = free_list, *next;
     for (; f; f = next) {
         next = (PyFloatObject*) Py_TYPE(f);
@@ -2008,6 +2027,7 @@ _PyFloat_ClearFreeList(void)
     }
     free_list = NULL;
     numfree = 0;
+#endif
 }
 
 void
@@ -2020,9 +2040,11 @@ _PyFloat_Fini(void)
 void
 _PyFloat_DebugMallocStats(FILE *out)
 {
+#if PyFloat_MAXFREELIST > 0
     _PyDebugAllocatorStats(out,
                            "free PyFloatObject",
                            numfree, sizeof(PyFloatObject));
+#endif
 }
 
 
