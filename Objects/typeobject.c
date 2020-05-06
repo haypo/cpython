@@ -5625,16 +5625,21 @@ add_subclass(PyTypeObject *base, PyTypeObject *type)
         if (dict == NULL)
             return -1;
     }
-    assert(PyDict_CheckExact(dict));
-    key = PyLong_FromVoidPtr((void *) type);
-    if (key == NULL)
-        return -1;
-    newobj = PyWeakref_NewRef((PyObject *)type, NULL);
-    if (newobj != NULL) {
-        result = PyDict_SetItem(dict, key, newobj);
-        Py_DECREF(newobj);
+    if (0) {
+        assert(PyDict_CheckExact(dict));
+        key = PyLong_FromVoidPtr((void *) type);
+        if (key == NULL)
+            return -1;
+        newobj = PyWeakref_NewRef((PyObject *)type, NULL);
+        if (newobj != NULL) {
+            result = PyDict_SetItem(dict, key, newobj);
+            Py_DECREF(newobj);
+        }
+        Py_DECREF(key);
     }
-    Py_DECREF(key);
+    else {
+        result = 0;
+    }
     return result;
 }
 
