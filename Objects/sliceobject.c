@@ -95,18 +95,27 @@ PyObject _Py_EllipsisObject = {
 
 /* Slice object implementation */
 
+/* bpo-40521: slice cache is shared by all interpreters. */
+#ifndef EXPERIMENTAL_ISOLATED_SUBINTERPRETERS
+#  define SLICE_CACHE
+#endif
+
+#ifdef SLICE_CACHE
 /* Using a cache is very effective since typically only a single slice is
  * created and then deleted again
  */
 static PySliceObject *slice_cache = NULL;
+#endif
 
 void _PySlice_Fini(void)
 {
+#ifdef SLICE_CACHE
     PySliceObject *obj = slice_cache;
     if (obj != NULL) {
         slice_cache = NULL;
         PyObject_GC_Del(obj);
     }
+#endif
 }
 
 /* start, stop, and step are python objects with None indicating no
@@ -117,11 +126,15 @@ PyObject *
 PySlice_New(PyObject *start, PyObject *stop, PyObject *step)
 {
     PySliceObject *obj;
+#ifdef SLICE_CACHE
     if (slice_cache != NULL) {
         obj = slice_cache;
         slice_cache = NULL;
         _Py_NewReference((PyObject *)obj);
-    } else {
+    }
+    else
+#endif
+    {
         obj = PyObject_GC_New(PySliceObject, &PySlice_Type);
         if (obj == NULL)
             return NULL;
@@ -328,10 +341,15 @@ slice_dealloc(PySliceObject *r)
     Py_DECREF(r->step);
     Py_DECREF(r->start);
     Py_DECREF(r->stop);
-    if (slice_cache == NULL)
+#ifdef SLICE_CACHE
+    if (slice_cache == NULL) {
         slice_cache = r;
+    }
     else
+#endif
+    {
         PyObject_GC_Del(r);
+    }
 }
 
 static PyObject *
