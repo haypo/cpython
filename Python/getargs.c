@@ -2035,7 +2035,6 @@ parser_init(struct _PyArg_Parser *parser)
     }
     parser->kwtuple = kwtuple;
 
-    assert(parser->next == NULL);
     parser->next = static_arg_parsers;
     static_arg_parsers = parser;
     return 1;
