@@ -18,12 +18,7 @@ try:
 except ImportError:
     _ZLIB_SUPPORTED = False
 
-try:
-    import bz2
-    del bz2
-    _BZ2_SUPPORTED = True
-except ImportError:
-    _BZ2_SUPPORTED = False
+_BZ2_SUPPORTED = False
 
 try:
     import lzma
