@@ -20,12 +20,7 @@ except ImportError:
 
 _BZ2_SUPPORTED = False
 
-try:
-    import lzma
-    del lzma
-    _LZMA_SUPPORTED = True
-except ImportError:
-    _LZMA_SUPPORTED = False
+_LZMA_SUPPORTED = False
 
 try:
     from pwd import getpwnam
