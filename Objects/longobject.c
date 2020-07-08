@@ -52,12 +52,17 @@ PyObject *_PyLong_One = NULL;
 static PyObject *
 get_small_int(sdigit ival)
 {
+    return _Py_TAGPTR_TAGGED(_Py_TAGPTR_INT, ival);
+}
+
+PyObject *
+_Py_GetSmallInt(int ival)
+{
     assert(IS_SMALL_INT(ival));
     PyInterpreterState *interp = _PyInterpreterState_GET();
-    PyObject *v = (PyObject*)interp->small_ints[ival + NSMALLNEGINTS];
-    Py_INCREF(v);
-    return v;
+    return (PyObject*)interp->small_ints[ival + NSMALLNEGINTS];
 }
+
 
 static PyLongObject *
 maybe_small_long(PyLongObject *v)
@@ -86,7 +91,7 @@ _PyLong_Negate(PyLongObject **x_p)
     PyLongObject *x;
 
     x = (PyLongObject *)*x_p;
-    if (Py_REFCNT(x) == 1) {
+    if (!_Py_TAGPTR_IS_TAGGED((PyObject *)x) && Py_REFCNT(x) == 1) {
         Py_SET_SIZE(x, -Py_SIZE(x));
         return;
     }
@@ -391,12 +396,11 @@ long
 PyLong_AsLongAndOverflow(PyObject *vv, int *overflow)
 {
     /* This version by Tim Peters */
-    PyLongObject *v;
+    PyLongObject *v, *decref_v;
     unsigned long x, prev;
     long res;
     Py_ssize_t i;
     int sign;
-    int do_decref = 0; /* if PyNumber_Index was called */
 
     *overflow = 0;
     if (vv == NULL) {
@@ -406,13 +410,15 @@ PyLong_AsLongAndOverflow(PyObject *vv, int *overflow)
 
     if (PyLong_Check(vv)) {
         v = (PyLongObject *)vv;
+        decref_v = NULL;
     }
     else {
         v = (PyLongObject *)_PyNumber_Index(vv);
         if (v == NULL)
             return -1;
-        do_decref = 1;
+        decref_v = v;
     }
+    v = (PyLongObject *)_Py_TAGPTR_UNBOX((PyObject*)v);
 
     res = -1;
     i = Py_SIZE(v);
@@ -457,8 +463,8 @@ PyLong_AsLongAndOverflow(PyObject *vv, int *overflow)
         }
     }
   exit:
-    if (do_decref) {
-        Py_DECREF(v);
+    if (decref_v != NULL) {
+        Py_DECREF(decref_v);
     }
     return res;
 }
@@ -502,7 +508,10 @@ _PyLong_AsInt(PyObject *obj)
    Returns -1 and sets an error condition if overflow occurs. */
 
 Py_ssize_t
-PyLong_AsSsize_t(PyObject *vv) {
+PyLong_AsSsize_t(PyObject *vv)
+{
+    vv = _Py_TAGPTR_UNBOX(vv);
+
     PyLongObject *v;
     size_t x, prev;
     Py_ssize_t i;
@@ -559,6 +568,7 @@ PyLong_AsSsize_t(PyObject *vv) {
 unsigned long
 PyLong_AsUnsignedLong(PyObject *vv)
 {
+    vv = _Py_TAGPTR_UNBOX(vv);
     PyLongObject *v;
     unsigned long x, prev;
     Py_ssize_t i;
@@ -603,6 +613,7 @@ PyLong_AsUnsignedLong(PyObject *vv)
 size_t
 PyLong_AsSize_t(PyObject *vv)
 {
+    vv = _Py_TAGPTR_UNBOX(vv);
     PyLongObject *v;
     size_t x, prev;
     Py_ssize_t i;
@@ -646,6 +657,7 @@ PyLong_AsSize_t(PyObject *vv)
 static unsigned long
 _PyLong_AsUnsignedLongMask(PyObject *vv)
 {
+    vv = _Py_TAGPTR_UNBOX(vv);
     PyLongObject *v;
     unsigned long x;
     Py_ssize_t i;
@@ -718,7 +730,7 @@ bit_length_digit(digit x)
 size_t
 _PyLong_NumBits(PyObject *vv)
 {
-    PyLongObject *v = (PyLongObject *)vv;
+    PyLongObject *v = (PyLongObject *)_Py_TAGPTR_UNBOX(vv);
     size_t result = 0;
     Py_ssize_t ndigits;
     int msd_bits;
@@ -861,6 +873,7 @@ _PyLong_AsByteArray(PyLongObject* v,
                     unsigned char* bytes, size_t n,
                     int little_endian, int is_signed)
 {
+    v = (PyLongObject*)_Py_TAGPTR_UNBOX((PyObject*)v);
     Py_ssize_t i;               /* index into v->ob_digit */
     Py_ssize_t ndigits;         /* |v->ob_size| */
     twodigits accum;            /* sliding register */
@@ -1139,10 +1152,9 @@ PyLong_FromSsize_t(Py_ssize_t ival)
 long long
 PyLong_AsLongLong(PyObject *vv)
 {
-    PyLongObject *v;
+    PyLongObject *v, *decref_v;
     long long bytes;
     int res;
-    int do_decref = 0; /* if PyNumber_Index was called */
 
     if (vv == NULL) {
         PyErr_BadInternalCall();
@@ -1151,13 +1163,15 @@ PyLong_AsLongLong(PyObject *vv)
 
     if (PyLong_Check(vv)) {
         v = (PyLongObject *)vv;
+        decref_v = NULL;
     }
     else {
         v = (PyLongObject *)_PyNumber_Index(vv);
         if (v == NULL)
             return -1;
-        do_decref = 1;
+        decref_v = v;
     }
+    v = (PyLongObject*)_Py_TAGPTR_UNBOX((PyObject*)v);
 
     res = 0;
     switch(Py_SIZE(v)) {
@@ -1174,8 +1188,8 @@ PyLong_AsLongLong(PyObject *vv)
         res = _PyLong_AsByteArray((PyLongObject *)v, (unsigned char *)&bytes,
                                   SIZEOF_LONG_LONG, PY_LITTLE_ENDIAN, 1);
     }
-    if (do_decref) {
-        Py_DECREF(v);
+    if (decref_v != NULL) {
+        Py_DECREF(decref_v);
     }
 
     /* Plan 9 can't handle long long in ? : expressions */
@@ -1191,6 +1205,7 @@ PyLong_AsLongLong(PyObject *vv)
 unsigned long long
 PyLong_AsUnsignedLongLong(PyObject *vv)
 {
+    vv = _Py_TAGPTR_UNBOX(vv);
     PyLongObject *v;
     unsigned long long bytes;
     int res;
@@ -1226,7 +1241,6 @@ PyLong_AsUnsignedLongLong(PyObject *vv)
 static unsigned long long
 _PyLong_AsUnsignedLongLongMask(PyObject *vv)
 {
-    PyLongObject *v;
     unsigned long long x;
     Py_ssize_t i;
     int sign;
@@ -1235,7 +1249,7 @@ _PyLong_AsUnsignedLongLongMask(PyObject *vv)
         PyErr_BadInternalCall();
         return (unsigned long long) -1;
     }
-    v = (PyLongObject *)vv;
+    PyLongObject *v = (PyLongObject *)_Py_TAGPTR_UNBOX(vv);
     switch(Py_SIZE(v)) {
     case 0: return 0;
     case 1: return v->ob_digit[0];
@@ -1291,12 +1305,11 @@ long long
 PyLong_AsLongLongAndOverflow(PyObject *vv, int *overflow)
 {
     /* This version by Tim Peters */
-    PyLongObject *v;
+    PyLongObject *v, *decref_v;
     unsigned long long x, prev;
     long long res;
     Py_ssize_t i;
     int sign;
-    int do_decref = 0; /* if PyNumber_Index was called */
 
     *overflow = 0;
     if (vv == NULL) {
@@ -1306,13 +1319,15 @@ PyLong_AsLongLongAndOverflow(PyObject *vv, int *overflow)
 
     if (PyLong_Check(vv)) {
         v = (PyLongObject *)vv;
+        decref_v = NULL;
     }
     else {
         v = (PyLongObject *)_PyNumber_Index(vv);
         if (v == NULL)
             return -1;
-        do_decref = 1;
+        decref_v = v;
     }
+    v = (PyLongObject*)_Py_TAGPTR_UNBOX((PyObject*)v);
 
     res = -1;
     i = Py_SIZE(v);
@@ -1357,8 +1372,8 @@ PyLong_AsLongLongAndOverflow(PyObject *vv, int *overflow)
         }
     }
   exit:
-    if (do_decref) {
-        Py_DECREF(v);
+    if (decref_v != NULL) {
+        Py_DECREF(decref_v);
     }
     return res;
 }
@@ -1606,6 +1621,7 @@ long_to_decimal_string_internal(PyObject *aa,
                                 _PyBytesWriter *bytes_writer,
                                 char **bytes_str)
 {
+    aa = _Py_TAGPTR_UNBOX(aa);
     PyLongObject *scratch, *a;
     PyObject *str = NULL;
     Py_ssize_t size, strlen, size_a, i, j;
@@ -1798,6 +1814,7 @@ long_format_binary(PyObject *aa, int base, int alternate,
                    PyObject **p_output, _PyUnicodeWriter *writer,
                    _PyBytesWriter *bytes_writer, char **bytes_str)
 {
+    aa = _Py_TAGPTR_UNBOX(aa);
     PyLongObject *a = (PyLongObject *)aa;
     PyObject *v = NULL;
     Py_ssize_t sz;
@@ -2554,6 +2571,8 @@ static int
 long_divrem(PyLongObject *a, PyLongObject *b,
             PyLongObject **pdiv, PyLongObject **prem)
 {
+    a = (PyLongObject*)_Py_TAGPTR_UNBOX((PyObject*)a);
+    b = (PyLongObject*)_Py_TAGPTR_UNBOX((PyObject*)b);
     Py_ssize_t size_a = Py_ABS(Py_SIZE(a)), size_b = Py_ABS(Py_SIZE(b));
     PyLongObject *z;
 
@@ -2905,6 +2924,8 @@ PyLong_AsDouble(PyObject *v)
 static Py_ssize_t
 long_compare(PyLongObject *a, PyLongObject *b)
 {
+    a = (PyLongObject*)_Py_TAGPTR_UNBOX((PyObject*)a);
+    b = (PyLongObject*)_Py_TAGPTR_UNBOX((PyObject*)b);
     Py_ssize_t sign = Py_SIZE(a) - Py_SIZE(b);
     if (sign == 0) {
         Py_ssize_t i = Py_ABS(Py_SIZE(a));
@@ -2935,6 +2956,7 @@ long_richcompare(PyObject *self, PyObject *other, int op)
 static Py_hash_t
 long_hash(PyLongObject *v)
 {
+    v = (PyLongObject *)_Py_TAGPTR_UNBOX((PyObject*)v);
     Py_uhash_t x;
     Py_ssize_t i;
     int sign;
@@ -3083,6 +3105,8 @@ x_sub(PyLongObject *a, PyLongObject *b)
 static PyObject *
 long_add(PyLongObject *a, PyLongObject *b)
 {
+    a = (PyLongObject*)_Py_TAGPTR_UNBOX((PyObject*)a);
+    b = (PyLongObject*)_Py_TAGPTR_UNBOX((PyObject*)b);
     PyLongObject *z;
 
     CHECK_BINOP(a, b);
@@ -3117,6 +3141,8 @@ long_add(PyLongObject *a, PyLongObject *b)
 static PyObject *
 long_sub(PyLongObject *a, PyLongObject *b)
 {
+    a = (PyLongObject*)_Py_TAGPTR_UNBOX((PyObject*)a);
+    b = (PyLongObject*)_Py_TAGPTR_UNBOX((PyObject*)b);
     PyLongObject *z;
 
     CHECK_BINOP(a, b);
@@ -3551,6 +3577,8 @@ k_lopsided_mul(PyLongObject *a, PyLongObject *b)
 static PyObject *
 long_mul(PyLongObject *a, PyLongObject *b)
 {
+    a = (PyLongObject*)_Py_TAGPTR_UNBOX((PyObject*)a);
+    b = (PyLongObject*)_Py_TAGPTR_UNBOX((PyObject*)b);
     PyLongObject *z;
 
     CHECK_BINOP(a, b);
@@ -3575,6 +3603,8 @@ long_mul(PyLongObject *a, PyLongObject *b)
 static PyObject *
 fast_mod(PyLongObject *a, PyLongObject *b)
 {
+    a = (PyLongObject*)_Py_TAGPTR_UNBOX((PyObject*)a);
+    b = (PyLongObject*)_Py_TAGPTR_UNBOX((PyObject*)b);
     sdigit left = a->ob_digit[0];
     sdigit right = b->ob_digit[0];
     sdigit mod;
@@ -3598,6 +3628,8 @@ fast_mod(PyLongObject *a, PyLongObject *b)
 static PyObject *
 fast_floor_div(PyLongObject *a, PyLongObject *b)
 {
+    a = (PyLongObject*)_Py_TAGPTR_UNBOX((PyObject*)a);
+    b = (PyLongObject*)_Py_TAGPTR_UNBOX((PyObject*)b);
     sdigit left = a->ob_digit[0];
     sdigit right = b->ob_digit[0];
     sdigit div;
@@ -3705,6 +3737,8 @@ l_divmod(PyLongObject *v, PyLongObject *w,
 static PyObject *
 long_div(PyObject *a, PyObject *b)
 {
+    a = _Py_TAGPTR_UNBOX(a);
+    b = _Py_TAGPTR_UNBOX(b);
     PyLongObject *div;
 
     CHECK_BINOP(a, b);
@@ -3726,6 +3760,8 @@ long_div(PyObject *a, PyObject *b)
 static PyObject *
 long_true_divide(PyObject *v, PyObject *w)
 {
+    v = _Py_TAGPTR_UNBOX(v);
+    w = _Py_TAGPTR_UNBOX(w);
     PyLongObject *a, *b, *x;
     Py_ssize_t a_size, b_size, shift, extra_bits, diff, x_size, x_bits;
     digit mask, low;
@@ -3984,6 +4020,8 @@ long_true_divide(PyObject *v, PyObject *w)
 static PyObject *
 long_mod(PyObject *a, PyObject *b)
 {
+    a = _Py_TAGPTR_UNBOX(a);
+    b = _Py_TAGPTR_UNBOX(b);
     PyLongObject *mod;
 
     CHECK_BINOP(a, b);
@@ -4000,6 +4038,8 @@ long_mod(PyObject *a, PyObject *b)
 static PyObject *
 long_divmod(PyObject *a, PyObject *b)
 {
+    a = _Py_TAGPTR_UNBOX(a);
+    b = _Py_TAGPTR_UNBOX(b);
     PyLongObject *div, *mod;
     PyObject *z;
 
@@ -4182,7 +4222,8 @@ long_pow(PyObject *v, PyObject *w, PyObject *x)
 
         /* if modulus == 1:
                return 0 */
-        if ((Py_SIZE(c) == 1) && (c->ob_digit[0] == 1)) {
+        PyLongObject *unboxed_c = (PyLongObject *)_Py_TAGPTR_UNBOX((PyObject*)c);
+        if ((Py_SIZE(unboxed_c) == 1) && (unboxed_c->ob_digit[0] == 1)) {
             z = (PyLongObject *)PyLong_FromLong(0L);
             goto Done;
         }
@@ -4262,8 +4303,9 @@ long_pow(PyObject *v, PyObject *w, PyObject *x)
     if (Py_SIZE(b) <= FIVEARY_CUTOFF) {
         /* Left-to-right binary exponentiation (HAC Algorithm 14.79) */
         /* http://www.cacr.math.uwaterloo.ca/hac/about/chap14.pdf    */
-        for (i = Py_SIZE(b) - 1; i >= 0; --i) {
-            digit bi = b->ob_digit[i];
+        PyLongObject *unboxed_b = (PyLongObject *)_Py_TAGPTR_UNBOX((PyObject*)b);
+        for (i = Py_SIZE(unboxed_b) - 1; i >= 0; --i) {
+            digit bi = unboxed_b->ob_digit[i];
 
             for (j = (digit)1 << (PyLong_SHIFT-1); j != 0; j >>= 1) {
                 MULT(z, z, z);
@@ -4279,8 +4321,9 @@ long_pow(PyObject *v, PyObject *w, PyObject *x)
         for (i = 1; i < 32; ++i)
             MULT(table[i-1], a, table[i]);
 
-        for (i = Py_SIZE(b) - 1; i >= 0; --i) {
-            const digit bi = b->ob_digit[i];
+        PyLongObject *unboxed_b = (PyLongObject *)_Py_TAGPTR_UNBOX((PyObject*)b);
+        for (i = Py_SIZE(unboxed_b) - 1; i >= 0; --i) {
+            const digit bi = unboxed_b->ob_digit[i];
 
             for (j = PyLong_SHIFT - 5; j >= 0; j -= 5) {
                 const int index = (bi >> j) & 0x1f;
@@ -4320,6 +4363,7 @@ long_pow(PyObject *v, PyObject *w, PyObject *x)
 static PyObject *
 long_invert(PyLongObject *v)
 {
+    v = (PyLongObject *)_Py_TAGPTR_UNBOX((PyObject*)v);
     /* Implement ~x as -(x+1) */
     PyLongObject *x;
     if (Py_ABS(Py_SIZE(v)) <=1)
@@ -4336,6 +4380,7 @@ long_invert(PyLongObject *v)
 static PyObject *
 long_neg(PyLongObject *v)
 {
+    v = (PyLongObject *)_Py_TAGPTR_UNBOX((PyObject*)v);
     PyLongObject *z;
     if (Py_ABS(Py_SIZE(v)) <= 1)
         return PyLong_FromLong(-MEDIUM_VALUE(v));
@@ -4396,6 +4441,7 @@ divmod_shift(PyObject *shiftby, Py_ssize_t *wordshift, digit *remshift)
 static PyObject *
 long_rshift1(PyLongObject *a, Py_ssize_t wordshift, digit remshift)
 {
+    a = (PyLongObject *)_Py_TAGPTR_UNBOX((PyObject*)a);
     PyLongObject *z = NULL;
     Py_ssize_t newsize, hishift, i, j;
     digit lomask, himask;
@@ -4507,6 +4553,8 @@ long_lshift1(PyLongObject *a, Py_ssize_t wordshift, digit remshift)
 static PyObject *
 long_lshift(PyObject *a, PyObject *b)
 {
+    a = _Py_TAGPTR_UNBOX(a);
+    b = _Py_TAGPTR_UNBOX(b);
     Py_ssize_t wordshift;
     digit remshift;
 
@@ -4683,6 +4731,8 @@ long_bitwise(PyLongObject *a,
 static PyObject *
 long_and(PyObject *a, PyObject *b)
 {
+    a = _Py_TAGPTR_UNBOX(a);
+    b = _Py_TAGPTR_UNBOX(b);
     PyObject *c;
     CHECK_BINOP(a, b);
     c = long_bitwise((PyLongObject*)a, '&', (PyLongObject*)b);
@@ -4692,6 +4742,8 @@ long_and(PyObject *a, PyObject *b)
 static PyObject *
 long_xor(PyObject *a, PyObject *b)
 {
+    a = _Py_TAGPTR_UNBOX(a);
+    b = _Py_TAGPTR_UNBOX(b);
     PyObject *c;
     CHECK_BINOP(a, b);
     c = long_bitwise((PyLongObject*)a, '^', (PyLongObject*)b);
@@ -4701,6 +4753,8 @@ long_xor(PyObject *a, PyObject *b)
 static PyObject *
 long_or(PyObject *a, PyObject *b)
 {
+    a = _Py_TAGPTR_UNBOX(a);
+    b = _Py_TAGPTR_UNBOX(b);
     PyObject *c;
     CHECK_BINOP(a, b);
     c = long_bitwise((PyLongObject*)a, '|', (PyLongObject*)b);
@@ -4774,13 +4828,17 @@ _PyLong_GCD(PyObject *aarg, PyObject *barg)
             Py_XDECREF(d);
             return (PyObject *)r;
         }
-        x = (((twodigits)a->ob_digit[size_a-1] << (2*PyLong_SHIFT-nbits)) |
-             ((twodigits)a->ob_digit[size_a-2] << (PyLong_SHIFT-nbits)) |
-             (a->ob_digit[size_a-3] >> nbits));
+        {
+            PyLongObject *unboxed_a = (PyLongObject*)_Py_TAGPTR_UNBOX((PyObject*)a);
+            PyLongObject *unboxed_b = (PyLongObject*)_Py_TAGPTR_UNBOX((PyObject*)b);
+            x = (((twodigits)unboxed_a->ob_digit[size_a-1] << (2*PyLong_SHIFT-nbits)) |
+                 ((twodigits)unboxed_a->ob_digit[size_a-2] << (PyLong_SHIFT-nbits)) |
+                 (unboxed_a->ob_digit[size_a-3] >> nbits));
 
-        y = ((size_b >= size_a - 2 ? b->ob_digit[size_a-3] >> nbits : 0) |
-             (size_b >= size_a - 1 ? (twodigits)b->ob_digit[size_a-2] << (PyLong_SHIFT-nbits) : 0) |
-             (size_b >= size_a ? (twodigits)b->ob_digit[size_a-1] << (2*PyLong_SHIFT-nbits) : 0));
+            y = ((size_b >= size_a - 2 ? unboxed_b->ob_digit[size_a-3] >> nbits : 0) |
+                 (size_b >= size_a - 1 ? (twodigits)unboxed_b->ob_digit[size_a-2] << (PyLong_SHIFT-nbits) : 0) |
+                 (size_b >= size_a ? (twodigits)unboxed_b->ob_digit[size_a-1] << (2*PyLong_SHIFT-nbits) : 0));
+        }
 
         /* inner loop of Lehmer's algorithm; A, B, C, D never grow
            larger than PyLong_MASK during the algorithm. */
@@ -4845,14 +4903,21 @@ _PyLong_GCD(PyObject *aarg, PyObject *barg)
             if (d == NULL)
                 goto error;
         }
-        a_end = a->ob_digit + size_a;
-        b_end = b->ob_digit + size_b;
+        {
+            PyLongObject *unboxed_a = (PyLongObject*)_Py_TAGPTR_UNBOX((PyObject*)a);
+            PyLongObject *unboxed_b = (PyLongObject*)_Py_TAGPTR_UNBOX((PyObject*)b);
+            PyLongObject *unboxed_c = (PyLongObject*)_Py_TAGPTR_UNBOX((PyObject*)c);
+            PyLongObject *unboxed_d = (PyLongObject*)_Py_TAGPTR_UNBOX((PyObject*)d);
 
-        /* compute new a and new b in parallel */
-        a_digit = a->ob_digit;
-        b_digit = b->ob_digit;
-        c_digit = c->ob_digit;
-        d_digit = d->ob_digit;
+            a_end = unboxed_a->ob_digit + size_a;
+            b_end = unboxed_b->ob_digit + size_b;
+
+            /* compute new a and new b in parallel */
+            a_digit = unboxed_a->ob_digit;
+            b_digit = unboxed_b->ob_digit;
+            c_digit = unboxed_c->ob_digit;
+            d_digit = unboxed_d->ob_digit;
+        }
         c_carry = 0;
         d_carry = 0;
         while (b_digit < b_end) {
@@ -5007,13 +5072,15 @@ long_subtype_new(PyTypeObject *type, PyObject *x, PyObject *obase)
     tmp = (PyLongObject *)long_new_impl(&PyLong_Type, x, obase);
     if (tmp == NULL)
         return NULL;
+    PyObject *decref_tmp = (PyObject *)tmp;
+    tmp = (PyLongObject *)_Py_TAGPTR_UNBOX((PyObject*)tmp);
     assert(PyLong_Check(tmp));
     n = Py_SIZE(tmp);
     if (n < 0)
         n = -n;
     newobj = (PyLongObject *)type->tp_alloc(type, n);
     if (newobj == NULL) {
-        Py_DECREF(tmp);
+        Py_DECREF(decref_tmp);
         return NULL;
     }
     assert(PyLong_Check(newobj));
@@ -5021,7 +5088,7 @@ long_subtype_new(PyTypeObject *type, PyObject *x, PyObject *obase)
     for (i = 0; i < n; i++) {
         newobj->ob_digit[i] = tmp->ob_digit[i];
     }
-    Py_DECREF(tmp);
+    Py_DECREF(decref_tmp);
     return (PyObject *)newobj;
 }
 
@@ -5129,7 +5196,9 @@ _PyLong_DivmodNear(PyObject *a, PyObject *b)
     cmp = long_compare((PyLongObject *)twice_rem, (PyLongObject *)b);
     Py_DECREF(twice_rem);
 
-    quo_is_odd = Py_SIZE(quo) != 0 && ((quo->ob_digit[0] & 1) != 0);
+    PyLongObject *unboxed_quo = (PyLongObject *)_Py_TAGPTR_UNBOX((PyObject *)quo);
+
+    quo_is_odd = Py_SIZE(quo) != 0 && ((unboxed_quo->ob_digit[0] & 1) != 0);
     if ((Py_SIZE(b) < 0 ? cmp < 0 : cmp > 0) || (cmp == 0 && quo_is_odd)) {
         /* fix up quotient */
         if (quo_is_neg)
@@ -5181,6 +5250,7 @@ static PyObject *
 int___round___impl(PyObject *self, PyObject *o_ndigits)
 /*[clinic end generated code: output=954fda6b18875998 input=1614cf23ec9e18c3]*/
 {
+    self = _Py_TAGPTR_UNBOX(self);
     PyObject *temp, *result, *ndigits;
 
     /* To round an integer m to the nearest 10**n (n positive), we make use of
@@ -5275,6 +5345,7 @@ static PyObject *
 int_bit_length_impl(PyObject *self)
 /*[clinic end generated code: output=fc1977c9353d6a59 input=e4eb7a587e849a32]*/
 {
+    self = _Py_TAGPTR_UNBOX(self);
     PyLongObject *result, *x, *y;
     Py_ssize_t ndigits;
     int msd_bits;
@@ -5350,6 +5421,7 @@ static PyObject *
 int_bit_count_impl(PyObject *self)
 /*[clinic end generated code: output=2e571970daf1e5c3 input=7e0adef8e8ccdf2e]*/
 {
+    self = _Py_TAGPTR_UNBOX(self);
     assert(self != NULL);
     assert(PyLong_Check(self));
 

@@ -39,11 +39,15 @@ static PyObject* _Py_TAGPTR_GET_SINGLETON(const PyObject *op)
 
 PyObject* _Py_TAGPTR_UNBOX(PyObject *op)
 {
+    extern PyObject* _Py_GetSmallInt(int ival);
+
     switch (_Py_TAGPTR_TAG(op)) {
     case _Py_TAGPTR_UNTAGGED:
         return op;
     case _Py_TAGPTR_SINGLETON:
         return _Py_TAGPTR_GET_SINGLETON(op);
+    case _Py_TAGPTR_INT:
+        return _Py_GetSmallInt((int)_Py_TAGPTR_VALUE(op));
     default:
         Py_UNREACHABLE();
     }
@@ -60,6 +64,8 @@ _Py_TYPE(const PyObject *op)
         PyObject *unboxed = _Py_TAGPTR_GET_SINGLETON(op);
         return unboxed->ob_type;
     }
+    case _Py_TAGPTR_INT:
+        return &PyLong_Type;
     default:
         Py_UNREACHABLE();
     }

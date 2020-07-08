@@ -2092,8 +2092,8 @@ unsafe_long_compare(PyObject *v, PyObject *w, MergeState *ms)
     assert(Py_ABS(Py_SIZE(v)) <= 1);
     assert(Py_ABS(Py_SIZE(w)) <= 1);
 
-    vl = (PyLongObject*)v;
-    wl = (PyLongObject*)w;
+    vl = (PyLongObject*)_Py_TAGPTR_UNBOX(v);
+    wl = (PyLongObject*)_Py_TAGPTR_UNBOX(w);
 
     v0 = Py_SIZE(vl) == 0 ? 0 : (sdigit)vl->ob_digit[0];
     w0 = Py_SIZE(wl) == 0 ? 0 : (sdigit)wl->ob_digit[0];

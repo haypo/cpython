@@ -2144,17 +2144,18 @@ dec_from_long(PyTypeObject *type, const PyObject *v,
         sign = MPD_POS;
     }
 
+    PyLongObject *unboxed_l = (PyLongObject *)_Py_TAGPTR_UNBOX((PyObject*)l);
     if (len == 1) {
-        _dec_settriple(dec, sign, *l->ob_digit, 0);
+        _dec_settriple(dec, sign, *unboxed_l->ob_digit, 0);
         mpd_qfinalize(MPD(dec), ctx, status);
         return dec;
     }
 
 #if PYLONG_BITS_IN_DIGIT == 30
-    mpd_qimport_u32(MPD(dec), l->ob_digit, len, sign, PyLong_BASE,
+    mpd_qimport_u32(MPD(dec), unboxed_l->ob_digit, len, sign, PyLong_BASE,
                     ctx, status);
 #elif PYLONG_BITS_IN_DIGIT == 15
-    mpd_qimport_u16(MPD(dec), l->ob_digit, len, sign, PyLong_BASE,
+    mpd_qimport_u16(MPD(dec), unboxed_l->ob_digit, len, sign, PyLong_BASE,
                     ctx, status);
 #else
   #error "PYLONG_BITS_IN_DIGIT should be 15 or 30"

@@ -129,6 +129,7 @@ typedef struct {
 typedef enum _Py_TAGPTR_Tag {
     _Py_TAGPTR_UNTAGGED=0,
     _Py_TAGPTR_SINGLETON=1,
+    _Py_TAGPTR_INT=2,
 } _Py_TAGPTR_Tag;
 
 static inline PyObject* _Py_TAGPTR_TAGGED(_Py_TAGPTR_Tag tag, uintptr_t value)
