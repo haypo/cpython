@@ -21,24 +21,24 @@ PyAPI_DATA(struct _longobject) _Py_FalseStruct, _Py_TrueStruct;
 #define Py_False ((PyObject *) &_Py_FalseStruct)
 #define Py_True ((PyObject *) &_Py_TrueStruct)
 
-/* Macros for returning Py_True or Py_False, respectively */
-#define Py_RETURN_TRUE return Py_INCREF(Py_True), Py_True
-#define Py_RETURN_FALSE return Py_INCREF(Py_False), Py_False
-
 /* Function to return a bool from a C long */
 PyAPI_FUNC(PyObject *) PyBool_FromLong(long);
 
 #define _Py_TAGPTR_TRUE _Py_TAGPTR_TAGGED(_Py_TAGPTR_SINGLETON, _Py_TAGPTR_SINGLETON_TRUE)
+#define _Py_TAGPTR_FALSE _Py_TAGPTR_TAGGED(_Py_TAGPTR_SINGLETON, _Py_TAGPTR_SINGLETON_FALSE)
+
 
 static inline int Py_IS_TRUE(PyObject *op) {
     return (op == Py_True || op == _Py_TAGPTR_TRUE);
 }
 
-#define _Py_TAGPTR_FALSE _Py_TAGPTR_TAGGED(_Py_TAGPTR_SINGLETON, _Py_TAGPTR_SINGLETON_FALSE)
-
 static inline int Py_IS_FALSE(PyObject *op) {
     return (op == Py_False || op == _Py_TAGPTR_FALSE);
 }
+
+/* Macros for returning Py_True or Py_False, respectively */
+#define Py_RETURN_TRUE return _Py_TAGPTR_TRUE
+#define Py_RETURN_FALSE return _Py_TAGPTR_FALSE
 
 #ifdef __cplusplus
 }
