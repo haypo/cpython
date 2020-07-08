@@ -468,7 +468,7 @@ class Obj2ModVisitor(PickleVisitor):
             self.visitAttributeDeclaration(a, name, sum=sum)
         self.emit("", 0)
         # XXX: should we only do this for 'expr'?
-        self.emit("if (obj == Py_None) {", 1)
+        self.emit("if (Py_IS_NONE(obj)) {", 1)
         self.emit("*out = NULL;", 2)
         self.emit("return 0;", 2)
         self.emit("}", 1)
@@ -564,7 +564,7 @@ class Obj2ModVisitor(PickleVisitor):
             self.emit(format % message, depth+1, reflow=False)
             self.emit("return 1;", depth+1)
         else:
-            self.emit("if (tmp == NULL || tmp == Py_None) {", depth)
+            self.emit("if (tmp == NULL || Py_IS_NONE(tmp)) {", depth)
             self.emit("Py_CLEAR(tmp);", depth+1)
             if self.isNumeric(field):
                 self.emit("%s = 0;" % field.name, depth+1)
@@ -951,8 +951,9 @@ static PyObject* ast2obj_int(astmodulestate *Py_UNUSED(state), long b)
 
 static int obj2ast_object(astmodulestate *Py_UNUSED(state), PyObject* obj, PyObject** out, PyArena* arena)
 {
-    if (obj == Py_None)
+    if (Py_IS_NONE(obj)) {
         obj = NULL;
+    }
     if (obj) {
         if (PyArena_AddPyObject(arena, obj) < 0) {
             *out = NULL;
@@ -977,7 +978,7 @@ static int obj2ast_constant(astmodulestate *Py_UNUSED(state), PyObject* obj, PyO
 
 static int obj2ast_identifier(astmodulestate *state, PyObject* obj, PyObject** out, PyArena* arena)
 {
-    if (!PyUnicode_CheckExact(obj) && obj != Py_None) {
+    if (!PyUnicode_CheckExact(obj) && !Py_IS_NONE(obj)) {
         PyErr_SetString(PyExc_TypeError, "AST identifier must be of type str");
         return 1;
     }

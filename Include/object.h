@@ -538,6 +538,11 @@ PyAPI_DATA(PyObject) _Py_NoneStruct; /* Don't use this directly */
 /* Macro for returning Py_None from a function */
 #define Py_RETURN_NONE return Py_INCREF(Py_None), Py_None
 
+static inline int Py_IS_NONE(PyObject *op) {
+    return (op == Py_None);
+}
+
+
 /*
 Py_NotImplemented is a singleton used to signal that an operation is
 not implemented for a given type combination.

@@ -3250,7 +3250,7 @@ class str_converter(CConverter):
                            displayname=displayname)
         if self.format_unit == 'z':
             return """
-                if ({argname} == Py_None) {{{{
+                if (Py_IS_NONE({argname})) {{{{
                     {paramname} = NULL;
                 }}}}
                 else if (PyUnicode_Check({argname})) {{{{
@@ -3424,7 +3424,7 @@ PyMem_Free((void *){name});
                     """.format(argname=argname, paramname=self.name, argnum=argnum)
             elif self.accept == {str, NoneType}:
                 return """
-                    if ({argname} == Py_None) {{{{
+                    if (Py_IS_NONE({argname})) {{{{
                         {paramname} = NULL;
                     }}}}
                     else if (PyUnicode_Check({argname})) {{{{
@@ -3710,11 +3710,10 @@ class NoneType_return_converter(CReturnConverter):
     def render(self, function, data):
         self.declare(data)
         data.return_conversion.append('''
-if (_return_value != Py_None) {
+if (!Py_IS_NONE(_return_value)) {
     goto exit;
 }
-return_value = Py_None;
-Py_INCREF(Py_None);
+return_value = _Py_TAGPTR_NONE;
 '''.strip())
 
 class bool_return_converter(CReturnConverter):
