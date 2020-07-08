@@ -605,15 +605,16 @@ where NULL (nil) is not suitable (since NULL often means 'error').
 Don't forget to apply Py_INCREF() when returning this value!!!
 */
 PyAPI_DATA(PyObject) _Py_NoneStruct; /* Don't use this directly */
-#define Py_None (&_Py_NoneStruct)
 
 #define _Py_TAGPTR_NONE _Py_TAGPTR_TAGGED(_Py_TAGPTR_SINGLETON, _Py_TAGPTR_SINGLETON_NONE)
+
+#define Py_None _Py_TAGPTR_NONE
 
 /* Macro for returning Py_None from a function */
 #define Py_RETURN_NONE return _Py_TAGPTR_NONE
 
 static inline int Py_IS_NONE(PyObject *op) {
-    return (op == Py_None || op == _Py_TAGPTR_NONE);
+    return (op == &_Py_NoneStruct || op == _Py_TAGPTR_NONE);
 }
 
 

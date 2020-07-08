@@ -17,16 +17,15 @@ Don't forget to apply Py_INCREF() when returning either!!! */
 /* Don't use these directly */
 PyAPI_DATA(struct _longobject) _Py_FalseStruct, _Py_TrueStruct;
 
-/* Use these macros */
-#define Py_False ((PyObject *) &_Py_FalseStruct)
-#define Py_True ((PyObject *) &_Py_TrueStruct)
-
 /* Function to return a bool from a C long */
 PyAPI_FUNC(PyObject *) PyBool_FromLong(long);
 
 #define _Py_TAGPTR_TRUE _Py_TAGPTR_TAGGED(_Py_TAGPTR_SINGLETON, _Py_TAGPTR_SINGLETON_TRUE)
 #define _Py_TAGPTR_FALSE _Py_TAGPTR_TAGGED(_Py_TAGPTR_SINGLETON, _Py_TAGPTR_SINGLETON_FALSE)
 
+/* Use these macros */
+#define Py_False _Py_TAGPTR_FALSE
+#define Py_True _Py_TAGPTR_TRUE
 
 static inline int Py_IS_TRUE(PyObject *op) {
     return (op == Py_True || op == _Py_TAGPTR_TRUE);

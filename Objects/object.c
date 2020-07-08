@@ -30,9 +30,9 @@ static PyObject* _Py_TAGPTR_GET_SINGLETON(const PyObject *op)
 {
     assert(_Py_TAGPTR_TAG(op) == _Py_TAGPTR_SINGLETON);
     switch (_Py_TAGPTR_VALUE(op)) {
-    case _Py_TAGPTR_SINGLETON_NONE: return Py_None;
-    case _Py_TAGPTR_SINGLETON_TRUE: return Py_True;
-    case _Py_TAGPTR_SINGLETON_FALSE: return Py_False;
+    case _Py_TAGPTR_SINGLETON_NONE: return &_Py_NoneStruct;
+    case _Py_TAGPTR_SINGLETON_TRUE: return ((PyObject *) &_Py_TrueStruct);
+    case _Py_TAGPTR_SINGLETON_FALSE: return ((PyObject *) &_Py_FalseStruct);
     default: Py_UNREACHABLE();
     }
 }
