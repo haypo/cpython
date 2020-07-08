@@ -155,7 +155,7 @@ winreg_ConnectRegistry(PyObject *module, PyObject *const *args, Py_ssize_t nargs
     if (!_PyArg_CheckPositional("ConnectRegistry", nargs, 2, 2)) {
         goto exit;
     }
-    if (args[0] == Py_None) {
+    if (Py_IS_NONE(args[0])) {
         computer_name = NULL;
     }
     else if (PyUnicode_Check(args[0])) {
@@ -229,7 +229,7 @@ winreg_CreateKey(PyObject *module, PyObject *const *args, Py_ssize_t nargs)
     if (!clinic_HKEY_converter(args[0], &key)) {
         goto exit;
     }
-    if (args[1] == Py_None) {
+    if (Py_IS_NONE(args[1])) {
         sub_key = NULL;
     }
     else if (PyUnicode_Check(args[1])) {
@@ -474,7 +474,7 @@ winreg_DeleteValue(PyObject *module, PyObject *const *args, Py_ssize_t nargs)
     if (!clinic_HKEY_converter(args[0], &key)) {
         goto exit;
     }
-    if (args[1] == Py_None) {
+    if (Py_IS_NONE(args[1])) {
         value = NULL;
     }
     else if (PyUnicode_Check(args[1])) {
@@ -958,7 +958,7 @@ winreg_QueryValue(PyObject *module, PyObject *const *args, Py_ssize_t nargs)
     if (!clinic_HKEY_converter(args[0], &key)) {
         goto exit;
     }
-    if (args[1] == Py_None) {
+    if (Py_IS_NONE(args[1])) {
         sub_key = NULL;
     }
     else if (PyUnicode_Check(args[1])) {
@@ -1021,7 +1021,7 @@ winreg_QueryValueEx(PyObject *module, PyObject *const *args, Py_ssize_t nargs)
     if (!clinic_HKEY_converter(args[0], &key)) {
         goto exit;
     }
-    if (args[1] == Py_None) {
+    if (Py_IS_NONE(args[1])) {
         name = NULL;
     }
     else if (PyUnicode_Check(args[1])) {
@@ -1346,4 +1346,4 @@ winreg_QueryReflectionKey(PyObject *module, PyObject *arg)
 exit:
     return return_value;
 }
-/*[clinic end generated code: output=497a2e804821d5c9 input=a9049054013a1b77]*/
+/*[clinic end generated code: output=15fb438dbc0d801b input=a9049054013a1b77]*/

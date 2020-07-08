@@ -2697,7 +2697,7 @@ _curses_setupterm(PyObject *module, PyObject *const *args, Py_ssize_t nargs, PyO
         goto skip_optional_pos;
     }
     if (args[0]) {
-        if (args[0] == Py_None) {
+        if (Py_IS_NONE(args[0])) {
             term = NULL;
         }
         else if (PyUnicode_Check(args[0])) {
@@ -4288,4 +4288,4 @@ _curses_has_extended_color_support(PyObject *module, PyObject *Py_UNUSED(ignored
 #ifndef _CURSES_USE_DEFAULT_COLORS_METHODDEF
     #define _CURSES_USE_DEFAULT_COLORS_METHODDEF
 #endif /* !defined(_CURSES_USE_DEFAULT_COLORS_METHODDEF) */
-/*[clinic end generated code: output=38b2531d17f119e1 input=a9049054013a1b77]*/
+/*[clinic end generated code: output=92b6355f1868489e input=a9049054013a1b77]*/

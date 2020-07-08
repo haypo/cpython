@@ -823,7 +823,7 @@ _elementtree_XMLParser___init__(PyObject *self, PyObject *args, PyObject *kwargs
             goto skip_optional_kwonly;
         }
     }
-    if (fastargs[1] == Py_None) {
+    if (Py_IS_NONE(fastargs[1])) {
         encoding = NULL;
     }
     else if (PyUnicode_Check(fastargs[1])) {
@@ -915,4 +915,4 @@ skip_optional:
 exit:
     return return_value;
 }
-/*[clinic end generated code: output=1385b5e5688f3614 input=a9049054013a1b77]*/
+/*[clinic end generated code: output=909e47581fdb8e74 input=a9049054013a1b77]*/

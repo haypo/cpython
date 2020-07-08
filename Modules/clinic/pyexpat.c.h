@@ -152,7 +152,7 @@ pyexpat_xmlparser_ExternalEntityParserCreate(xmlparseobject *self, PyObject *con
     if (!_PyArg_CheckPositional("ExternalEntityParserCreate", nargs, 1, 2)) {
         goto exit;
     }
-    if (args[0] == Py_None) {
+    if (Py_IS_NONE(args[0])) {
         context = NULL;
     }
     else if (PyUnicode_Check(args[0])) {
@@ -303,7 +303,7 @@ pyexpat_ParserCreate(PyObject *module, PyObject *const *args, Py_ssize_t nargs, 
         goto skip_optional_pos;
     }
     if (args[0]) {
-        if (args[0] == Py_None) {
+        if (Py_IS_NONE(args[0])) {
             encoding = NULL;
         }
         else if (PyUnicode_Check(args[0])) {
@@ -326,7 +326,7 @@ pyexpat_ParserCreate(PyObject *module, PyObject *const *args, Py_ssize_t nargs, 
         }
     }
     if (args[1]) {
-        if (args[1] == Py_None) {
+        if (Py_IS_NONE(args[1])) {
             namespace_separator = NULL;
         }
         else if (PyUnicode_Check(args[1])) {
@@ -387,4 +387,4 @@ exit:
 #ifndef PYEXPAT_XMLPARSER_USEFOREIGNDTD_METHODDEF
     #define PYEXPAT_XMLPARSER_USEFOREIGNDTD_METHODDEF
 #endif /* !defined(PYEXPAT_XMLPARSER_USEFOREIGNDTD_METHODDEF) */
-/*[clinic end generated code: output=14e37efc4ec10be2 input=a9049054013a1b77]*/
+/*[clinic end generated code: output=0ee56b4d3c9184b5 input=a9049054013a1b77]*/

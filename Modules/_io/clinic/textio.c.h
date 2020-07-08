@@ -204,7 +204,7 @@ _io_TextIOWrapper___init__(PyObject *self, PyObject *args, PyObject *kwargs)
         goto skip_optional_pos;
     }
     if (fastargs[1]) {
-        if (fastargs[1] == Py_None) {
+        if (Py_IS_NONE(fastargs[1])) {
             encoding = NULL;
         }
         else if (PyUnicode_Check(fastargs[1])) {
@@ -233,7 +233,7 @@ _io_TextIOWrapper___init__(PyObject *self, PyObject *args, PyObject *kwargs)
         }
     }
     if (fastargs[3]) {
-        if (fastargs[3] == Py_None) {
+        if (Py_IS_NONE(fastargs[3])) {
             newline = NULL;
         }
         else if (PyUnicode_Check(fastargs[3])) {
@@ -671,4 +671,4 @@ _io_TextIOWrapper_close(textio *self, PyObject *Py_UNUSED(ignored))
 {
     return _io_TextIOWrapper_close_impl(self);
 }
-/*[clinic end generated code: output=2604c8f3a45b9a03 input=a9049054013a1b77]*/
+/*[clinic end generated code: output=429ab2a19c6593ff input=a9049054013a1b77]*/

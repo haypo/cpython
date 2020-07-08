@@ -187,7 +187,7 @@ _io_open(PyObject *module, PyObject *const *args, Py_ssize_t nargs, PyObject *kw
         }
     }
     if (args[3]) {
-        if (args[3] == Py_None) {
+        if (Py_IS_NONE(args[3])) {
             encoding = NULL;
         }
         else if (PyUnicode_Check(args[3])) {
@@ -210,7 +210,7 @@ _io_open(PyObject *module, PyObject *const *args, Py_ssize_t nargs, PyObject *kw
         }
     }
     if (args[4]) {
-        if (args[4] == Py_None) {
+        if (Py_IS_NONE(args[4])) {
             errors = NULL;
         }
         else if (PyUnicode_Check(args[4])) {
@@ -233,7 +233,7 @@ _io_open(PyObject *module, PyObject *const *args, Py_ssize_t nargs, PyObject *kw
         }
     }
     if (args[5]) {
-        if (args[5] == Py_None) {
+        if (Py_IS_NONE(args[5])) {
             newline = NULL;
         }
         else if (PyUnicode_Check(args[5])) {
@@ -313,4 +313,4 @@ _io_open_code(PyObject *module, PyObject *const *args, Py_ssize_t nargs, PyObjec
 exit:
     return return_value;
 }
-/*[clinic end generated code: output=5c0dd7a262c30ebc input=a9049054013a1b77]*/
+/*[clinic end generated code: output=1e8033ad776d1ecb input=a9049054013a1b77]*/

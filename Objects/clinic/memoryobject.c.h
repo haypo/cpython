@@ -169,7 +169,7 @@ memoryview_tobytes(PyMemoryViewObject *self, PyObject *const *args, Py_ssize_t n
     if (!noptargs) {
         goto skip_optional_pos;
     }
-    if (args[0] == Py_None) {
+    if (Py_IS_NONE(args[0])) {
         order = NULL;
     }
     else if (PyUnicode_Check(args[0])) {
@@ -258,4 +258,4 @@ skip_optional_pos:
 exit:
     return return_value;
 }
-/*[clinic end generated code: output=1b879bb934d18c66 input=a9049054013a1b77]*/
+/*[clinic end generated code: output=630b2b63df85c458 input=a9049054013a1b77]*/

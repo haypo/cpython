@@ -31,7 +31,7 @@ _locale_setlocale(PyObject *module, PyObject *const *args, Py_ssize_t nargs)
     if (nargs < 2) {
         goto skip_optional;
     }
-    if (args[1] == Py_None) {
+    if (Py_IS_NONE(args[1])) {
         locale = NULL;
     }
     else if (PyUnicode_Check(args[1])) {
@@ -280,7 +280,7 @@ _locale_dgettext(PyObject *module, PyObject *const *args, Py_ssize_t nargs)
     if (!_PyArg_CheckPositional("dgettext", nargs, 2, 2)) {
         goto exit;
     }
-    if (args[0] == Py_None) {
+    if (Py_IS_NONE(args[0])) {
         domain = NULL;
     }
     else if (PyUnicode_Check(args[0])) {
@@ -345,7 +345,7 @@ _locale_dcgettext(PyObject *module, PyObject *const *args, Py_ssize_t nargs)
     if (!_PyArg_CheckPositional("dcgettext", nargs, 3, 3)) {
         goto exit;
     }
-    if (args[0] == Py_None) {
+    if (Py_IS_NONE(args[0])) {
         domain = NULL;
     }
     else if (PyUnicode_Check(args[0])) {
@@ -408,7 +408,7 @@ _locale_textdomain(PyObject *module, PyObject *arg)
     PyObject *return_value = NULL;
     const char *domain;
 
-    if (arg == Py_None) {
+    if (Py_IS_NONE(arg)) {
         domain = NULL;
     }
     else if (PyUnicode_Check(arg)) {
@@ -519,7 +519,7 @@ _locale_bind_textdomain_codeset(PyObject *module, PyObject *const *args, Py_ssiz
         PyErr_SetString(PyExc_ValueError, "embedded null character");
         goto exit;
     }
-    if (args[1] == Py_None) {
+    if (Py_IS_NONE(args[1])) {
         codeset = NULL;
     }
     else if (PyUnicode_Check(args[1])) {
@@ -584,4 +584,4 @@ exit:
 #ifndef _LOCALE_BIND_TEXTDOMAIN_CODESET_METHODDEF
     #define _LOCALE_BIND_TEXTDOMAIN_CODESET_METHODDEF
 #endif /* !defined(_LOCALE_BIND_TEXTDOMAIN_CODESET_METHODDEF) */
-/*[clinic end generated code: output=fe944779cd572d8e input=a9049054013a1b77]*/
+/*[clinic end generated code: output=c939200cd3f87803 input=a9049054013a1b77]*/

@@ -1139,8 +1139,9 @@ static PyObject* ast2obj_int(astmodulestate *Py_UNUSED(state), long b)
 
 static int obj2ast_object(astmodulestate *Py_UNUSED(state), PyObject* obj, PyObject** out, PyArena* arena)
 {
-    if (obj == Py_None)
+    if (Py_IS_NONE(obj)) {
         obj = NULL;
+    }
     if (obj) {
         if (PyArena_AddPyObject(arena, obj) < 0) {
             *out = NULL;
@@ -1165,7 +1166,7 @@ static int obj2ast_constant(astmodulestate *Py_UNUSED(state), PyObject* obj, PyO
 
 static int obj2ast_identifier(astmodulestate *state, PyObject* obj, PyObject** out, PyArena* arena)
 {
-    if (!PyUnicode_CheckExact(obj) && obj != Py_None) {
+    if (!PyUnicode_CheckExact(obj) && !Py_IS_NONE(obj)) {
         PyErr_SetString(PyExc_TypeError, "AST identifier must be of type str");
         return 1;
     }
@@ -4934,7 +4935,7 @@ obj2ast_mod(astmodulestate *state, PyObject* obj, mod_ty* out, PyArena* arena)
     PyObject *tmp = NULL;
     PyObject *tp;
 
-    if (obj == Py_None) {
+    if (Py_IS_NONE(obj)) {
         *out = NULL;
         return 0;
     }
@@ -5165,7 +5166,7 @@ obj2ast_stmt(astmodulestate *state, PyObject* obj, stmt_ty* out, PyArena* arena)
     int end_lineno;
     int end_col_offset;
 
-    if (obj == Py_None) {
+    if (Py_IS_NONE(obj)) {
         *out = NULL;
         return 0;
     }
@@ -5198,7 +5199,7 @@ obj2ast_stmt(astmodulestate *state, PyObject* obj, stmt_ty* out, PyArena* arena)
     if (_PyObject_LookupAttr(obj, state->end_lineno, &tmp) < 0) {
         return 1;
     }
-    if (tmp == NULL || tmp == Py_None) {
+    if (tmp == NULL || Py_IS_NONE(tmp)) {
         Py_CLEAR(tmp);
         end_lineno = 0;
     }
@@ -5211,7 +5212,7 @@ obj2ast_stmt(astmodulestate *state, PyObject* obj, stmt_ty* out, PyArena* arena)
     if (_PyObject_LookupAttr(obj, state->end_col_offset, &tmp) < 0) {
         return 1;
     }
-    if (tmp == NULL || tmp == Py_None) {
+    if (tmp == NULL || Py_IS_NONE(tmp)) {
         Py_CLEAR(tmp);
         end_col_offset = 0;
     }
@@ -5329,7 +5330,7 @@ obj2ast_stmt(astmodulestate *state, PyObject* obj, stmt_ty* out, PyArena* arena)
         if (_PyObject_LookupAttr(obj, state->returns, &tmp) < 0) {
             return 1;
         }
-        if (tmp == NULL || tmp == Py_None) {
+        if (tmp == NULL || Py_IS_NONE(tmp)) {
             Py_CLEAR(tmp);
             returns = NULL;
         }
@@ -5342,7 +5343,7 @@ obj2ast_stmt(astmodulestate *state, PyObject* obj, stmt_ty* out, PyArena* arena)
         if (_PyObject_LookupAttr(obj, state->type_comment, &tmp) < 0) {
             return 1;
         }
-        if (tmp == NULL || tmp == Py_None) {
+        if (tmp == NULL || Py_IS_NONE(tmp)) {
             Py_CLEAR(tmp);
             type_comment = NULL;
         }
@@ -5466,7 +5467,7 @@ obj2ast_stmt(astmodulestate *state, PyObject* obj, stmt_ty* out, PyArena* arena)
         if (_PyObject_LookupAttr(obj, state->returns, &tmp) < 0) {
             return 1;
         }
-        if (tmp == NULL || tmp == Py_None) {
+        if (tmp == NULL || Py_IS_NONE(tmp)) {
             Py_CLEAR(tmp);
             returns = NULL;
         }
@@ -5479,7 +5480,7 @@ obj2ast_stmt(astmodulestate *state, PyObject* obj, stmt_ty* out, PyArena* arena)
         if (_PyObject_LookupAttr(obj, state->type_comment, &tmp) < 0) {
             return 1;
         }
-        if (tmp == NULL || tmp == Py_None) {
+        if (tmp == NULL || Py_IS_NONE(tmp)) {
             Py_CLEAR(tmp);
             type_comment = NULL;
         }
@@ -5668,7 +5669,7 @@ obj2ast_stmt(astmodulestate *state, PyObject* obj, stmt_ty* out, PyArena* arena)
         if (_PyObject_LookupAttr(obj, state->value, &tmp) < 0) {
             return 1;
         }
-        if (tmp == NULL || tmp == Py_None) {
+        if (tmp == NULL || Py_IS_NONE(tmp)) {
             Py_CLEAR(tmp);
             value = NULL;
         }
@@ -5788,7 +5789,7 @@ obj2ast_stmt(astmodulestate *state, PyObject* obj, stmt_ty* out, PyArena* arena)
         if (_PyObject_LookupAttr(obj, state->type_comment, &tmp) < 0) {
             return 1;
         }
-        if (tmp == NULL || tmp == Py_None) {
+        if (tmp == NULL || Py_IS_NONE(tmp)) {
             Py_CLEAR(tmp);
             type_comment = NULL;
         }
@@ -5897,7 +5898,7 @@ obj2ast_stmt(astmodulestate *state, PyObject* obj, stmt_ty* out, PyArena* arena)
         if (_PyObject_LookupAttr(obj, state->value, &tmp) < 0) {
             return 1;
         }
-        if (tmp == NULL || tmp == Py_None) {
+        if (tmp == NULL || Py_IS_NONE(tmp)) {
             Py_CLEAR(tmp);
             value = NULL;
         }
@@ -6032,7 +6033,7 @@ obj2ast_stmt(astmodulestate *state, PyObject* obj, stmt_ty* out, PyArena* arena)
         if (_PyObject_LookupAttr(obj, state->type_comment, &tmp) < 0) {
             return 1;
         }
-        if (tmp == NULL || tmp == Py_None) {
+        if (tmp == NULL || Py_IS_NONE(tmp)) {
             Py_CLEAR(tmp);
             type_comment = NULL;
         }
@@ -6154,7 +6155,7 @@ obj2ast_stmt(astmodulestate *state, PyObject* obj, stmt_ty* out, PyArena* arena)
         if (_PyObject_LookupAttr(obj, state->type_comment, &tmp) < 0) {
             return 1;
         }
-        if (tmp == NULL || tmp == Py_None) {
+        if (tmp == NULL || Py_IS_NONE(tmp)) {
             Py_CLEAR(tmp);
             type_comment = NULL;
         }
@@ -6436,7 +6437,7 @@ obj2ast_stmt(astmodulestate *state, PyObject* obj, stmt_ty* out, PyArena* arena)
         if (_PyObject_LookupAttr(obj, state->type_comment, &tmp) < 0) {
             return 1;
         }
-        if (tmp == NULL || tmp == Py_None) {
+        if (tmp == NULL || Py_IS_NONE(tmp)) {
             Py_CLEAR(tmp);
             type_comment = NULL;
         }
@@ -6530,7 +6531,7 @@ obj2ast_stmt(astmodulestate *state, PyObject* obj, stmt_ty* out, PyArena* arena)
         if (_PyObject_LookupAttr(obj, state->type_comment, &tmp) < 0) {
             return 1;
         }
-        if (tmp == NULL || tmp == Py_None) {
+        if (tmp == NULL || Py_IS_NONE(tmp)) {
             Py_CLEAR(tmp);
             type_comment = NULL;
         }
@@ -6557,7 +6558,7 @@ obj2ast_stmt(astmodulestate *state, PyObject* obj, stmt_ty* out, PyArena* arena)
         if (_PyObject_LookupAttr(obj, state->exc, &tmp) < 0) {
             return 1;
         }
-        if (tmp == NULL || tmp == Py_None) {
+        if (tmp == NULL || Py_IS_NONE(tmp)) {
             Py_CLEAR(tmp);
             exc = NULL;
         }
@@ -6570,7 +6571,7 @@ obj2ast_stmt(astmodulestate *state, PyObject* obj, stmt_ty* out, PyArena* arena)
         if (_PyObject_LookupAttr(obj, state->cause, &tmp) < 0) {
             return 1;
         }
-        if (tmp == NULL || tmp == Py_None) {
+        if (tmp == NULL || Py_IS_NONE(tmp)) {
             Py_CLEAR(tmp);
             cause = NULL;
         }
@@ -6758,7 +6759,7 @@ obj2ast_stmt(astmodulestate *state, PyObject* obj, stmt_ty* out, PyArena* arena)
         if (_PyObject_LookupAttr(obj, state->msg, &tmp) < 0) {
             return 1;
         }
-        if (tmp == NULL || tmp == Py_None) {
+        if (tmp == NULL || Py_IS_NONE(tmp)) {
             Py_CLEAR(tmp);
             msg = NULL;
         }
@@ -6832,7 +6833,7 @@ obj2ast_stmt(astmodulestate *state, PyObject* obj, stmt_ty* out, PyArena* arena)
         if (_PyObject_LookupAttr(obj, state->module, &tmp) < 0) {
             return 1;
         }
-        if (tmp == NULL || tmp == Py_None) {
+        if (tmp == NULL || Py_IS_NONE(tmp)) {
             Py_CLEAR(tmp);
             module = NULL;
         }
@@ -6878,7 +6879,7 @@ obj2ast_stmt(astmodulestate *state, PyObject* obj, stmt_ty* out, PyArena* arena)
         if (_PyObject_LookupAttr(obj, state->level, &tmp) < 0) {
             return 1;
         }
-        if (tmp == NULL || tmp == Py_None) {
+        if (tmp == NULL || Py_IS_NONE(tmp)) {
             Py_CLEAR(tmp);
             level = 0;
         }
@@ -7063,7 +7064,7 @@ obj2ast_expr(astmodulestate *state, PyObject* obj, expr_ty* out, PyArena* arena)
     int end_lineno;
     int end_col_offset;
 
-    if (obj == Py_None) {
+    if (Py_IS_NONE(obj)) {
         *out = NULL;
         return 0;
     }
@@ -7096,7 +7097,7 @@ obj2ast_expr(astmodulestate *state, PyObject* obj, expr_ty* out, PyArena* arena)
     if (_PyObject_LookupAttr(obj, state->end_lineno, &tmp) < 0) {
         return 1;
     }
-    if (tmp == NULL || tmp == Py_None) {
+    if (tmp == NULL || Py_IS_NONE(tmp)) {
         Py_CLEAR(tmp);
         end_lineno = 0;
     }
@@ -7109,7 +7110,7 @@ obj2ast_expr(astmodulestate *state, PyObject* obj, expr_ty* out, PyArena* arena)
     if (_PyObject_LookupAttr(obj, state->end_col_offset, &tmp) < 0) {
         return 1;
     }
-    if (tmp == NULL || tmp == Py_None) {
+    if (tmp == NULL || Py_IS_NONE(tmp)) {
         Py_CLEAR(tmp);
         end_col_offset = 0;
     }
@@ -7823,7 +7824,7 @@ obj2ast_expr(astmodulestate *state, PyObject* obj, expr_ty* out, PyArena* arena)
         if (_PyObject_LookupAttr(obj, state->value, &tmp) < 0) {
             return 1;
         }
-        if (tmp == NULL || tmp == Py_None) {
+        if (tmp == NULL || Py_IS_NONE(tmp)) {
             Py_CLEAR(tmp);
             value = NULL;
         }
@@ -8078,7 +8079,7 @@ obj2ast_expr(astmodulestate *state, PyObject* obj, expr_ty* out, PyArena* arena)
         if (_PyObject_LookupAttr(obj, state->conversion, &tmp) < 0) {
             return 1;
         }
-        if (tmp == NULL || tmp == Py_None) {
+        if (tmp == NULL || Py_IS_NONE(tmp)) {
             Py_CLEAR(tmp);
             conversion = 0;
         }
@@ -8091,7 +8092,7 @@ obj2ast_expr(astmodulestate *state, PyObject* obj, expr_ty* out, PyArena* arena)
         if (_PyObject_LookupAttr(obj, state->format_spec, &tmp) < 0) {
             return 1;
         }
-        if (tmp == NULL || tmp == Py_None) {
+        if (tmp == NULL || Py_IS_NONE(tmp)) {
             Py_CLEAR(tmp);
             format_spec = NULL;
         }
@@ -8177,7 +8178,7 @@ obj2ast_expr(astmodulestate *state, PyObject* obj, expr_ty* out, PyArena* arena)
         if (_PyObject_LookupAttr(obj, state->kind, &tmp) < 0) {
             return 1;
         }
-        if (tmp == NULL || tmp == Py_None) {
+        if (tmp == NULL || Py_IS_NONE(tmp)) {
             Py_CLEAR(tmp);
             kind = NULL;
         }
@@ -8513,7 +8514,7 @@ obj2ast_expr(astmodulestate *state, PyObject* obj, expr_ty* out, PyArena* arena)
         if (_PyObject_LookupAttr(obj, state->lower, &tmp) < 0) {
             return 1;
         }
-        if (tmp == NULL || tmp == Py_None) {
+        if (tmp == NULL || Py_IS_NONE(tmp)) {
             Py_CLEAR(tmp);
             lower = NULL;
         }
@@ -8526,7 +8527,7 @@ obj2ast_expr(astmodulestate *state, PyObject* obj, expr_ty* out, PyArena* arena)
         if (_PyObject_LookupAttr(obj, state->upper, &tmp) < 0) {
             return 1;
         }
-        if (tmp == NULL || tmp == Py_None) {
+        if (tmp == NULL || Py_IS_NONE(tmp)) {
             Py_CLEAR(tmp);
             upper = NULL;
         }
@@ -8539,7 +8540,7 @@ obj2ast_expr(astmodulestate *state, PyObject* obj, expr_ty* out, PyArena* arena)
         if (_PyObject_LookupAttr(obj, state->step, &tmp) < 0) {
             return 1;
         }
-        if (tmp == NULL || tmp == Py_None) {
+        if (tmp == NULL || Py_IS_NONE(tmp)) {
             Py_CLEAR(tmp);
             step = NULL;
         }
@@ -8974,7 +8975,7 @@ obj2ast_excepthandler(astmodulestate *state, PyObject* obj, excepthandler_ty*
     int end_lineno;
     int end_col_offset;
 
-    if (obj == Py_None) {
+    if (Py_IS_NONE(obj)) {
         *out = NULL;
         return 0;
     }
@@ -9007,7 +9008,7 @@ obj2ast_excepthandler(astmodulestate *state, PyObject* obj, excepthandler_ty*
     if (_PyObject_LookupAttr(obj, state->end_lineno, &tmp) < 0) {
         return 1;
     }
-    if (tmp == NULL || tmp == Py_None) {
+    if (tmp == NULL || Py_IS_NONE(tmp)) {
         Py_CLEAR(tmp);
         end_lineno = 0;
     }
@@ -9020,7 +9021,7 @@ obj2ast_excepthandler(astmodulestate *state, PyObject* obj, excepthandler_ty*
     if (_PyObject_LookupAttr(obj, state->end_col_offset, &tmp) < 0) {
         return 1;
     }
-    if (tmp == NULL || tmp == Py_None) {
+    if (tmp == NULL || Py_IS_NONE(tmp)) {
         Py_CLEAR(tmp);
         end_col_offset = 0;
     }
@@ -9043,7 +9044,7 @@ obj2ast_excepthandler(astmodulestate *state, PyObject* obj, excepthandler_ty*
         if (_PyObject_LookupAttr(obj, state->type, &tmp) < 0) {
             return 1;
         }
-        if (tmp == NULL || tmp == Py_None) {
+        if (tmp == NULL || Py_IS_NONE(tmp)) {
             Py_CLEAR(tmp);
             type = NULL;
         }
@@ -9056,7 +9057,7 @@ obj2ast_excepthandler(astmodulestate *state, PyObject* obj, excepthandler_ty*
         if (_PyObject_LookupAttr(obj, state->name, &tmp) < 0) {
             return 1;
         }
-        if (tmp == NULL || tmp == Py_None) {
+        if (tmp == NULL || Py_IS_NONE(tmp)) {
             Py_CLEAR(tmp);
             name = NULL;
         }
@@ -9193,7 +9194,7 @@ obj2ast_arguments(astmodulestate *state, PyObject* obj, arguments_ty* out,
     if (_PyObject_LookupAttr(obj, state->vararg, &tmp) < 0) {
         return 1;
     }
-    if (tmp == NULL || tmp == Py_None) {
+    if (tmp == NULL || Py_IS_NONE(tmp)) {
         Py_CLEAR(tmp);
         vararg = NULL;
     }
@@ -9272,7 +9273,7 @@ obj2ast_arguments(astmodulestate *state, PyObject* obj, arguments_ty* out,
     if (_PyObject_LookupAttr(obj, state->kwarg, &tmp) < 0) {
         return 1;
     }
-    if (tmp == NULL || tmp == Py_None) {
+    if (tmp == NULL || Py_IS_NONE(tmp)) {
         Py_CLEAR(tmp);
         kwarg = NULL;
     }
@@ -9351,7 +9352,7 @@ obj2ast_arg(astmodulestate *state, PyObject* obj, arg_ty* out, PyArena* arena)
     if (_PyObject_LookupAttr(obj, state->annotation, &tmp) < 0) {
         return 1;
     }
-    if (tmp == NULL || tmp == Py_None) {
+    if (tmp == NULL || Py_IS_NONE(tmp)) {
         Py_CLEAR(tmp);
         annotation = NULL;
     }
@@ -9364,7 +9365,7 @@ obj2ast_arg(astmodulestate *state, PyObject* obj, arg_ty* out, PyArena* arena)
     if (_PyObject_LookupAttr(obj, state->type_comment, &tmp) < 0) {
         return 1;
     }
-    if (tmp == NULL || tmp == Py_None) {
+    if (tmp == NULL || Py_IS_NONE(tmp)) {
         Py_CLEAR(tmp);
         type_comment = NULL;
     }
@@ -9403,7 +9404,7 @@ obj2ast_arg(astmodulestate *state, PyObject* obj, arg_ty* out, PyArena* arena)
     if (_PyObject_LookupAttr(obj, state->end_lineno, &tmp) < 0) {
         return 1;
     }
-    if (tmp == NULL || tmp == Py_None) {
+    if (tmp == NULL || Py_IS_NONE(tmp)) {
         Py_CLEAR(tmp);
         end_lineno = 0;
     }
@@ -9416,7 +9417,7 @@ obj2ast_arg(astmodulestate *state, PyObject* obj, arg_ty* out, PyArena* arena)
     if (_PyObject_LookupAttr(obj, state->end_col_offset, &tmp) < 0) {
         return 1;
     }
-    if (tmp == NULL || tmp == Py_None) {
+    if (tmp == NULL || Py_IS_NONE(tmp)) {
         Py_CLEAR(tmp);
         end_col_offset = 0;
     }
@@ -9449,7 +9450,7 @@ obj2ast_keyword(astmodulestate *state, PyObject* obj, keyword_ty* out, PyArena*
     if (_PyObject_LookupAttr(obj, state->arg, &tmp) < 0) {
         return 1;
     }
-    if (tmp == NULL || tmp == Py_None) {
+    if (tmp == NULL || Py_IS_NONE(tmp)) {
         Py_CLEAR(tmp);
         arg = NULL;
     }
@@ -9501,7 +9502,7 @@ obj2ast_keyword(astmodulestate *state, PyObject* obj, keyword_ty* out, PyArena*
     if (_PyObject_LookupAttr(obj, state->end_lineno, &tmp) < 0) {
         return 1;
     }
-    if (tmp == NULL || tmp == Py_None) {
+    if (tmp == NULL || Py_IS_NONE(tmp)) {
         Py_CLEAR(tmp);
         end_lineno = 0;
     }
@@ -9514,7 +9515,7 @@ obj2ast_keyword(astmodulestate *state, PyObject* obj, keyword_ty* out, PyArena*
     if (_PyObject_LookupAttr(obj, state->end_col_offset, &tmp) < 0) {
         return 1;
     }
-    if (tmp == NULL || tmp == Py_None) {
+    if (tmp == NULL || Py_IS_NONE(tmp)) {
         Py_CLEAR(tmp);
         end_col_offset = 0;
     }
@@ -9556,7 +9557,7 @@ obj2ast_alias(astmodulestate *state, PyObject* obj, alias_ty* out, PyArena*
     if (_PyObject_LookupAttr(obj, state->asname, &tmp) < 0) {
         return 1;
     }
-    if (tmp == NULL || tmp == Py_None) {
+    if (tmp == NULL || Py_IS_NONE(tmp)) {
         Py_CLEAR(tmp);
         asname = NULL;
     }
@@ -9597,7 +9598,7 @@ obj2ast_withitem(astmodulestate *state, PyObject* obj, withitem_ty* out,
     if (_PyObject_LookupAttr(obj, state->optional_vars, &tmp) < 0) {
         return 1;
     }
-    if (tmp == NULL || tmp == Py_None) {
+    if (tmp == NULL || Py_IS_NONE(tmp)) {
         Py_CLEAR(tmp);
         optional_vars = NULL;
     }
@@ -9623,7 +9624,7 @@ obj2ast_type_ignore(astmodulestate *state, PyObject* obj, type_ignore_ty* out,
     PyObject *tmp = NULL;
     PyObject *tp;
 
-    if (obj == Py_None) {
+    if (Py_IS_NONE(obj)) {
         *out = NULL;
         return 0;
     }

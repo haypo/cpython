@@ -40,7 +40,7 @@ _multibytecodec_MultibyteCodec_encode(MultibyteCodecObject *self, PyObject *cons
     if (!noptargs) {
         goto skip_optional_pos;
     }
-    if (args[1] == Py_None) {
+    if (Py_IS_NONE(args[1])) {
         errors = NULL;
     }
     else if (PyUnicode_Check(args[1])) {
@@ -109,7 +109,7 @@ _multibytecodec_MultibyteCodec_decode(MultibyteCodecObject *self, PyObject *cons
     if (!noptargs) {
         goto skip_optional_pos;
     }
-    if (args[1] == Py_None) {
+    if (Py_IS_NONE(args[1])) {
         errors = NULL;
     }
     else if (PyUnicode_Check(args[1])) {
@@ -515,4 +515,4 @@ PyDoc_STRVAR(_multibytecodec___create_codec__doc__,
 
 #define _MULTIBYTECODEC___CREATE_CODEC_METHODDEF    \
     {"__create_codec", (PyCFunction)_multibytecodec___create_codec, METH_O, _multibytecodec___create_codec__doc__},
-/*[clinic end generated code: output=5c0f74129db07c87 input=a9049054013a1b77]*/
+/*[clinic end generated code: output=7f7b8e0b86fca9df input=a9049054013a1b77]*/
