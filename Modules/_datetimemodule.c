@@ -4431,10 +4431,10 @@ time_richcompare(PyObject *self, PyObject *other, int op)
     if (offset2 == NULL)
         goto done;
     /* If they're both naive, or both aware and have the same offsets,
-     * we get off cheap.  Note that if they're both naive, offset1 ==
-     * offset2 == Py_None at this point.
+     * we get off cheap.  Note that if they're both naive,
+     * offset1 == offset2 == None at this point.
      */
-    if ((offset1 == offset2) ||
+    if ((Py_IS_NONE(offset1) && Py_IS_NONE(offset2)) ||
         (PyDelta_Check(offset1) && PyDelta_Check(offset2) &&
          delta_cmp(offset1, offset2) == 0)) {
         diff = memcmp(((PyDateTime_Time *)self)->data,
@@ -5719,10 +5719,10 @@ datetime_richcompare(PyObject *self, PyObject *other, int op)
     if (offset2 == NULL)
         goto done;
     /* If they're both naive, or both aware and have the same offsets,
-     * we get off cheap.  Note that if they're both naive, offset1 ==
-     * Py_IS_NONE(offset2) at this point.
+     * we get off cheap.  Note that if they're both naive,
+     * offset1 == offset2 = None at this point.
      */
-    if ((offset1 == offset2) ||
+    if ((Py_IS_NONE(offset1) && Py_IS_NONE(offset2)) ||
         (PyDelta_Check(offset1) && PyDelta_Check(offset2) &&
          delta_cmp(offset1, offset2) == 0)) {
         diff = memcmp(((PyDateTime_DateTime *)self)->data,
