@@ -3070,12 +3070,14 @@ main_loop:
         case TARGET(IS_OP): {
             PyObject *right = POP();
             PyObject *left = TOP();
-            int res = (left == right)^oparg;
+            PyObject *unboxed_right = _Py_TAGPTR_UNBOX(right);
+            PyObject *unboxed_left = _Py_TAGPTR_UNBOX(left);
+            int res = (unboxed_left == unboxed_right)^oparg;
             PyObject *b = res ? Py_True : Py_False;
             Py_INCREF(b);
             SET_TOP(b);
-            Py_DECREF(left);
             Py_DECREF(right);
+            Py_DECREF(left);
             PREDICT(POP_JUMP_IF_FALSE);
             PREDICT(POP_JUMP_IF_TRUE);
             FAST_DISPATCH();

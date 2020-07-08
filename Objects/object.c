@@ -26,6 +26,46 @@ _Py_IDENTIFIER(__dir__);
 _Py_IDENTIFIER(__isabstractmethod__);
 
 
+static PyObject* _Py_TAGPTR_GET_SINGLETON(const PyObject *op)
+{
+    assert(_Py_TAGPTR_TAG(op) == _Py_TAGPTR_SINGLETON);
+    switch (_Py_TAGPTR_VALUE((op))) {
+    case _Py_TAGPTR_SINGLETON_NONE: return Py_None;
+    case _Py_TAGPTR_SINGLETON_TRUE: return Py_True;
+    case _Py_TAGPTR_SINGLETON_FALSE: return Py_False;
+    default: Py_UNREACHABLE();
+    }
+}
+
+PyObject* _Py_TAGPTR_UNBOX(PyObject *op)
+{
+    switch (_Py_TAGPTR_TAG(op)) {
+    case _Py_TAGPTR_UNTAGGED:
+        return op;
+    case _Py_TAGPTR_SINGLETON:
+        return _Py_TAGPTR_GET_SINGLETON(op);
+    default:
+        Py_UNREACHABLE();
+    }
+}
+
+PyTypeObject*
+_Py_TYPE(const PyObject *op)
+{
+    switch (_Py_TAGPTR_TAG(op)) {
+    case _Py_TAGPTR_UNTAGGED:
+        return op->ob_type;
+    case _Py_TAGPTR_SINGLETON:
+    {
+        PyObject *unboxed = _Py_TAGPTR_GET_SINGLETON(op);
+        return unboxed->ob_type;
+    }
+    default:
+        Py_UNREACHABLE();
+    }
+}
+
+
 int
 _PyObject_CheckConsistency(PyObject *op, int check_content)
 {
@@ -765,6 +805,7 @@ PyObject_HashNotImplemented(PyObject *v)
 Py_hash_t
 PyObject_Hash(PyObject *v)
 {
+    v = _Py_TAGPTR_UNBOX(v);
     PyTypeObject *tp = Py_TYPE(v);
     if (tp->tp_hash != NULL)
         return (*tp->tp_hash)(v);

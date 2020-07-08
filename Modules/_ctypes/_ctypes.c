@@ -2722,9 +2722,9 @@ KeepRef(CDataObject *target, Py_ssize_t index, PyObject *keep)
     CDataObject *ob;
     PyObject *key;
 
-/* Optimization: no need to store None */
+    /* Optimization: no need to store None */
     if (Py_IS_NONE(keep)) {
-        Py_DECREF(Py_None);
+        Py_DECREF(keep);
         return 0;
     }
     ob = PyCData_GetContainer(target);

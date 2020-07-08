@@ -4001,6 +4001,9 @@ object_richcompare(PyObject *self, PyObject *other, int op)
 {
     PyObject *res;
 
+    self = _Py_TAGPTR_UNBOX(self);
+    other = _Py_TAGPTR_UNBOX(other);
+
     switch (op) {
 
     case Py_EQ:

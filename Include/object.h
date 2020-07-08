@@ -122,43 +122,94 @@ typedef struct {
 #define _PyVarObject_CAST_CONST(op) ((const PyVarObject*)(op))
 
 
+// On x86-64, memory allocations must be aligned on 8 bytes (2**3)
+#define _Py_TAGPTR_MASK 7
+#define _Py_TAGPTR_SHIFT 3
+
+typedef enum _Py_TAGPTR_Tag {
+    _Py_TAGPTR_UNTAGGED=0,
+    _Py_TAGPTR_SINGLETON=1,
+} _Py_TAGPTR_Tag;
+
+static inline PyObject* _Py_TAGPTR_TAGGED(_Py_TAGPTR_Tag tag, uintptr_t value)
+{
+    value = (value << _Py_TAGPTR_SHIFT) | (uintptr_t)tag;
+    return (PyObject*)value;
+}
+
+typedef enum _Py_TAGPTR_Singleton {
+    _Py_TAGPTR_SINGLETON_NONE=0,
+    _Py_TAGPTR_SINGLETON_TRUE,
+    _Py_TAGPTR_SINGLETON_FALSE
+} _Py_TAGPTR_Singleton;
+
+
+static inline _Py_TAGPTR_Tag _Py_TAGPTR_TAG(const PyObject *op) {
+    return (_Py_TAGPTR_Tag)((uintptr_t)op & _Py_TAGPTR_MASK);
+}
+
+static inline int _Py_TAGPTR_IS_TAGGED(const PyObject *op) {
+    return (_Py_TAGPTR_TAG(op) != _Py_TAGPTR_UNTAGGED);
+}
+
+static inline uintptr_t _Py_TAGPTR_VALUE(const PyObject *op) {
+    assert(_Py_TAGPTR_IS_TAGGED(op));
+    return (uintptr_t)op >> _Py_TAGPTR_SHIFT;
+}
+
+PyAPI_FUNC(PyObject*) _Py_TAGPTR_UNBOX(PyObject *op);
+
+
 static inline Py_ssize_t _Py_REFCNT(const PyObject *ob) {
-    return ob->ob_refcnt;
+    if (!_Py_TAGPTR_IS_TAGGED(ob)) {
+        return ob->ob_refcnt;
+    }
+    else {
+        // Tagged pointers are immutable: pretent and refcnt is always 2
+        return 2;
+    }
 }
 #define Py_REFCNT(ob) _Py_REFCNT(_PyObject_CAST_CONST(ob))
 
 
 static inline Py_ssize_t _Py_SIZE(const PyVarObject *ob) {
-    return ob->ob_size;
+    if (!_Py_TAGPTR_IS_TAGGED((PyObject*)ob)) {
+        return ob->ob_size;
+    }
+    else {
+        PyVarObject *unboxed = (PyVarObject *)_Py_TAGPTR_UNBOX((PyObject*)ob);
+        return unboxed->ob_size;
+    }
 }
 #define Py_SIZE(ob) _Py_SIZE(_PyVarObject_CAST_CONST(ob))
 
 
-static inline PyTypeObject* _Py_TYPE(const PyObject *ob) {
-    return ob->ob_type;
-}
+PyAPI_DATA(PyTypeObject*) _Py_TYPE(const PyObject *ob);
 #define Py_TYPE(ob) _Py_TYPE(_PyObject_CAST_CONST(ob))
 
 
 static inline int _Py_IS_TYPE(const PyObject *ob, const PyTypeObject *type) {
-    return ob->ob_type == type;
+    return Py_TYPE(ob) == type;
 }
 #define Py_IS_TYPE(ob, type) _Py_IS_TYPE(_PyObject_CAST_CONST(ob), type)
 
 
 static inline void _Py_SET_REFCNT(PyObject *ob, Py_ssize_t refcnt) {
+    assert(!_Py_TAGPTR_IS_TAGGED(ob));  // FIXME: support tagged pointers
     ob->ob_refcnt = refcnt;
 }
 #define Py_SET_REFCNT(ob, refcnt) _Py_SET_REFCNT(_PyObject_CAST(ob), refcnt)
 
 
 static inline void _Py_SET_TYPE(PyObject *ob, PyTypeObject *type) {
+    assert(!_Py_TAGPTR_IS_TAGGED(ob));  // FIXME: support tagged pointers
     ob->ob_type = type;
 }
 #define Py_SET_TYPE(ob, type) _Py_SET_TYPE(_PyObject_CAST(ob), type)
 
 
 static inline void _Py_SET_SIZE(PyVarObject *ob, Py_ssize_t size) {
+    assert(!_Py_TAGPTR_IS_TAGGED((PyObject *)ob));  // FIXME: support tagged pointers
     ob->ob_size = size;
 }
 #define Py_SET_SIZE(ob, size) _Py_SET_SIZE(_PyVarObject_CAST(ob), size)
@@ -421,6 +472,10 @@ PyAPI_FUNC(void) _Py_Dealloc(PyObject *);
 
 static inline void _Py_INCREF(PyObject *op)
 {
+    if (_Py_TAGPTR_IS_TAGGED(op)) {
+        // Tagged pointers are immutable
+        return;
+    }
 #ifdef Py_REF_DEBUG
     _Py_RefTotal++;
 #endif
@@ -435,6 +490,10 @@ static inline void _Py_DECREF(
 #endif
     PyObject *op)
 {
+    if (_Py_TAGPTR_IS_TAGGED(op)) {
+        // Tagged pointers are immutable
+        return;
+    }
 #ifdef Py_REF_DEBUG
     _Py_RefTotal--;
 #endif
@@ -535,11 +594,13 @@ Don't forget to apply Py_INCREF() when returning this value!!!
 PyAPI_DATA(PyObject) _Py_NoneStruct; /* Don't use this directly */
 #define Py_None (&_Py_NoneStruct)
 
+#define _Py_TAGPTR_NONE _Py_TAGPTR_TAGGED(_Py_TAGPTR_SINGLETON, _Py_TAGPTR_SINGLETON_NONE)
+
 /* Macro for returning Py_None from a function */
-#define Py_RETURN_NONE return Py_INCREF(Py_None), Py_None
+#define Py_RETURN_NONE return _Py_TAGPTR_NONE
 
 static inline int Py_IS_NONE(PyObject *op) {
-    return (op == Py_None);
+    return (op == Py_None || op == _Py_TAGPTR_NONE);
 }
 
 

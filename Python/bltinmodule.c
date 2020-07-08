@@ -1171,6 +1171,10 @@ static PyObject *
 builtin_id(PyModuleDef *self, PyObject *v)
 /*[clinic end generated code: output=0aa640785f697f65 input=5a534136419631f4]*/
 {
+    // Don't fix id() to help debugging
+#if 0
+    v = (PyObject*)_Py_TAGPTR_UNBOX(v);
+#endif
     PyObject *id = PyLong_FromVoidPtr(v);
 
     if (id && PySys_Audit("builtins.id", "O", id) < 0) {
