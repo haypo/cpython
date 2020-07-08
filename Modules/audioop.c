@@ -1379,7 +1379,7 @@ audioop_ratecv_impl(PyObject *module, Py_buffer *fragment, int width,
 
     len = fragment->len / bytes_per_frame; /* # of frames */
 
-    if (state == Py_None) {
+    if (Py_IS_NONE(state)) {
         d = -outrate;
         for (chan = 0; chan < nchannels; chan++)
             prev_i[chan] = cur_i[chan] = 0;
@@ -1672,7 +1672,7 @@ audioop_lin2adpcm_impl(PyObject *module, Py_buffer *fragment, int width,
         return NULL;
 
     /* Decode state, should have (value, step) */
-    if ( state == Py_None ) {
+    if ( Py_IS_NONE(state) ) {
         /* First time, it seems. Set defaults */
         valpred = 0;
         index = 0;
@@ -1802,7 +1802,7 @@ audioop_adpcm2lin_impl(PyObject *module, Py_buffer *fragment, int width,
         return NULL;
 
     /* Decode state, should have (value, step) */
-    if ( state == Py_None ) {
+    if ( Py_IS_NONE(state) ) {
         /* First time, it seems. Set defaults */
         valpred = 0;
         index = 0;

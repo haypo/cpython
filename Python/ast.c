@@ -125,7 +125,7 @@ validate_arguments(arguments_ty args)
 static int
 validate_constant(PyObject *value)
 {
-    if (value == Py_None || value == Py_Ellipsis)
+    if (Py_IS_NONE(value) || value == Py_Ellipsis)
         return 1;
 
     if (PyLong_CheckExact(value)

@@ -243,7 +243,7 @@ PyDict_GetItemProxy(PyObject *dict, PyObject *key)
     if (!PyWeakref_CheckProxy(item))
         return item;
     result = PyWeakref_GET_OBJECT(item);
-    if (result == Py_None)
+    if (Py_IS_NONE(result))
         return NULL;
     return result;
 }
@@ -1154,7 +1154,7 @@ PyCPointerType_from_param(PyObject *type, PyObject *value)
 {
     StgDictObject *typedict;
 
-    if (value == Py_None) {
+    if (Py_IS_NONE(value)) {
         /* ConvParam will convert to a NULL pointer later */
         Py_INCREF(value);
         return value;
@@ -1685,7 +1685,7 @@ c_wchar_p_from_param(PyObject *type, PyObject *value)
     _Py_IDENTIFIER(_as_parameter_);
     PyObject *as_parameter;
     int res;
-    if (value == Py_None) {
+    if (Py_IS_NONE(value)) {
         Py_RETURN_NONE;
     }
     if (PyUnicode_Check(value)) {
@@ -1752,7 +1752,7 @@ c_char_p_from_param(PyObject *type, PyObject *value)
     _Py_IDENTIFIER(_as_parameter_);
     PyObject *as_parameter;
     int res;
-    if (value == Py_None) {
+    if (Py_IS_NONE(value)) {
         Py_RETURN_NONE;
     }
     if (PyBytes_Check(value)) {
@@ -1822,7 +1822,7 @@ c_void_p_from_param(PyObject *type, PyObject *value)
     int res;
 
 /* None */
-    if (value == Py_None) {
+    if (Py_IS_NONE(value)) {
         Py_RETURN_NONE;
     }
     /* Should probably allow buffer interface as well */
@@ -2499,7 +2499,7 @@ make_funcptrtype_dict(StgDictObject *stgdict)
 
     ob = _PyDict_GetItemIdWithError((PyObject *)stgdict, &PyId__restype_);
     if (ob) {
-        if (ob != Py_None && !PyType_stgdict(ob) && !PyCallable_Check(ob)) {
+        if (!Py_IS_NONE(ob) && !PyType_stgdict(ob) && !PyCallable_Check(ob)) {
             PyErr_SetString(PyExc_TypeError,
                 "_restype_ must be a type, a callable, or None");
             return -1;
@@ -2723,7 +2723,7 @@ KeepRef(CDataObject *target, Py_ssize_t index, PyObject *keep)
     PyObject *key;
 
 /* Optimization: no need to store None */
-    if (keep == Py_None) {
+    if (Py_IS_NONE(keep)) {
         Py_DECREF(Py_None);
         return 0;
     }
@@ -3108,7 +3108,7 @@ _PyCData_set(CDataObject *dst, PyObject *type, SETFUNC setfunc, PyObject *value,
                                 size, ptr);
             Py_DECREF(ob);
             return result;
-        } else if (value == Py_None && PyCPointerTypeObject_Check(type)) {
+        } else if (Py_IS_NONE(value) && PyCPointerTypeObject_Check(type)) {
             *(void **)ptr = NULL;
             Py_RETURN_NONE;
         } else {
@@ -3279,7 +3279,7 @@ PyCFuncPtr_set_restype(PyCFuncPtrObject *self, PyObject *ob, void *Py_UNUSED(ign
         Py_XDECREF(oldchecker);
         return 0;
     }
-    if (ob != Py_None && !PyType_stgdict(ob) && !PyCallable_Check(ob)) {
+    if (!Py_IS_NONE(ob) && !PyType_stgdict(ob) && !PyCallable_Check(ob)) {
         PyErr_SetString(PyExc_TypeError,
                         "restype must be a type, a callable, or None");
         return -1;
@@ -3318,7 +3318,7 @@ PyCFuncPtr_set_argtypes(PyCFuncPtrObject *self, PyObject *ob, void *Py_UNUSED(ig
 {
     PyObject *converters;
 
-    if (ob == NULL || ob == Py_None) {
+    if (ob == NULL || Py_IS_NONE(ob)) {
         Py_CLEAR(self->converters);
         Py_CLEAR(self->argtypes);
     } else {
@@ -3548,7 +3548,7 @@ PyCFuncPtr_FromDll(PyTypeObject *type, PyObject *args, PyObject *kwds)
 
     if (!PyArg_ParseTuple(args, "O|O", &ftuple, &paramflags))
         return NULL;
-    if (paramflags == Py_None)
+    if (Py_IS_NONE(paramflags))
         paramflags = NULL;
 
     ftuple = PySequence_Tuple(ftuple);
@@ -3667,7 +3667,7 @@ PyCFuncPtr_FromVtblIndex(PyTypeObject *type, PyObject *args, PyObject *kwds)
 
     if (!PyArg_ParseTuple(args, "is|Oz#", &index, &name, &paramflags, &iid, &iid_len))
         return NULL;
-    if (paramflags == Py_None)
+    if (Py_IS_NONE(paramflags))
         paramflags = NULL;
 
     if (!_validate_paramflags(type, paramflags))
@@ -5272,7 +5272,7 @@ Pointer_subscript(PyObject *myself, PyObject *item)
         /* Since pointers have no length, and we want to apply
            different semantics to negative indices than normal
            slicing, we have to dissect the slice object ourselves.*/
-        if (slice->step == Py_None) {
+        if (Py_IS_NONE(slice->step)) {
             step = 1;
         }
         else {
@@ -5286,7 +5286,7 @@ Pointer_subscript(PyObject *myself, PyObject *item)
                 return NULL;
             }
         }
-        if (slice->start == Py_None) {
+        if (Py_IS_NONE(slice->start)) {
             if (step < 0) {
                 PyErr_SetString(PyExc_ValueError,
                                 "slice start is required "
@@ -5301,7 +5301,7 @@ Pointer_subscript(PyObject *myself, PyObject *item)
             if (start == -1 && PyErr_Occurred())
                 return NULL;
         }
-        if (slice->stop == Py_None) {
+        if (Py_IS_NONE(slice->stop)) {
             PyErr_SetString(PyExc_ValueError,
                             "slice stop is required");
             return NULL;
@@ -5631,7 +5631,7 @@ cast(void *ptr, PyObject *src, PyObject *ctype)
             goto failed;
 
         /* But we need a dictionary! */
-        if (obj->b_objects == Py_None) {
+        if (Py_IS_NONE(obj->b_objects)) {
             Py_DECREF(Py_None);
             obj->b_objects = PyDict_New();
             if (obj->b_objects == NULL)

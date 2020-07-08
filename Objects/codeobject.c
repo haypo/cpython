@@ -708,7 +708,7 @@ _PyCode_ConstantKey(PyObject *op)
     PyObject *key;
 
     /* Py_None and Py_Ellipsis are singletons. */
-    if (op == Py_None || op == Py_Ellipsis
+    if (Py_IS_NONE(op) || op == Py_Ellipsis
        || PyLong_CheckExact(op)
        || PyUnicode_CheckExact(op)
           /* code_richcompare() uses _PyCode_ConstantKey() internally */

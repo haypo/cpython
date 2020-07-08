@@ -149,13 +149,13 @@ faulthandler_get_fileno(PyObject **file_ptr)
     int fd;
     PyObject *file = *file_ptr;
 
-    if (file == NULL || file == Py_None) {
+    if (file == NULL || Py_IS_NONE(file)) {
         file = _PySys_GetObjectId(&PyId_stderr);
         if (file == NULL) {
             PyErr_SetString(PyExc_RuntimeError, "unable to get sys.stderr");
             return -1;
         }
-        if (file == Py_None) {
+        if (Py_IS_NONE(file)) {
             PyErr_SetString(PyExc_RuntimeError, "sys.stderr is None");
             return -1;
         }

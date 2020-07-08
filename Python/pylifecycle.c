@@ -1218,7 +1218,7 @@ flush_std_files(void)
     PyObject *tmp;
     int status = 0;
 
-    if (fout != NULL && fout != Py_None && !file_is_closed(fout)) {
+    if (fout != NULL && !Py_IS_NONE(fout) && !file_is_closed(fout)) {
         tmp = _PyObject_CallMethodIdNoArgs(fout, &PyId_flush);
         if (tmp == NULL) {
             PyErr_WriteUnraisable(fout);
@@ -1228,7 +1228,7 @@ flush_std_files(void)
             Py_DECREF(tmp);
     }
 
-    if (ferr != NULL && ferr != Py_None && !file_is_closed(ferr)) {
+    if (ferr != NULL && !Py_IS_NONE(ferr) && !file_is_closed(ferr)) {
         tmp = _PyObject_CallMethodIdNoArgs(ferr, &PyId_flush);
         if (tmp == NULL) {
             PyErr_Clear();
@@ -1701,7 +1701,7 @@ add_main_module(PyInterpreterState *interp)
      * process.
      */
     loader = PyDict_GetItemString(d, "__loader__");
-    if (loader == NULL || loader == Py_None) {
+    if (loader == NULL || Py_IS_NONE(loader)) {
         PyObject *loader = PyObject_GetAttrString(interp->importlib,
                                                   "BuiltinImporter");
         if (loader == NULL) {
@@ -2073,7 +2073,7 @@ _Py_FatalError_PrintExc(PyThreadState *tstate)
     }
 
     ferr = _PySys_GetObjectId(&PyId_stderr);
-    if (ferr == NULL || ferr == Py_None) {
+    if (ferr == NULL || Py_IS_NONE(ferr)) {
         /* sys.stderr is not set yet or set to None,
            no need to try to display the exception */
         return 0;
@@ -2090,7 +2090,7 @@ _Py_FatalError_PrintExc(PyThreadState *tstate)
         return 0;
     }
 
-    has_tb = (tb != Py_None);
+    has_tb = (!Py_IS_NONE(tb));
     PyErr_Display(exception, v, tb);
     Py_XDECREF(exception);
     Py_XDECREF(v);

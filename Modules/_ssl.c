@@ -789,7 +789,7 @@ PySSL_SetError(PySSLSocket *sslsock, int ret, const char *filename, int lineno)
         {
             if (e == 0) {
                 PySocketSockObject *s = GET_SOCKET(sslsock);
-                if (ret == 0 || (((PyObject *)s) == Py_None)) {
+                if (ret == 0 || Py_IS_NONE((PyObject *)s)) {
                     p = PY_SSL_ERROR_EOF;
                     type = PySSLEOFErrorObject;
                     errstr = "EOF occurred in violation of protocol";
@@ -1026,13 +1026,13 @@ newPySSLSocket(PySSLContext *sslctx, PySocketSockObject *sock,
             return NULL;
         }
     }
-    if (owner && owner != Py_None) {
+    if (owner && !Py_IS_NONE(owner)) {
         if (PySSL_set_owner(self, owner, NULL) == -1) {
             Py_DECREF(self);
             return NULL;
         }
     }
-    if (session && session != Py_None) {
+    if (session && !Py_IS_NONE(session)) {
         if (PySSL_set_session(self, session, NULL) == -1) {
             Py_DECREF(self);
             return NULL;
@@ -1059,7 +1059,7 @@ _ssl__SSLSocket_do_handshake_impl(PySSLSocket *self)
     int has_timeout;
 
     if (sock) {
-        if (((PyObject*)sock) == Py_None) {
+        if (Py_IS_NONE((PyObject *)sock)) {
             _setSSLError("Underlying socket connection gone",
                          PY_SSL_ERROR_NO_SOCKET, __FILE__, __LINE__);
             return NULL;
@@ -1321,7 +1321,7 @@ _get_peer_alt_names (X509 *certificate) {
     names = (GENERAL_NAMES *)X509_get_ext_d2i(
         certificate, NID_subject_alt_name, NULL, NULL);
     if (names != NULL) {
-        if (peer_alt_names == Py_None) {
+        if (Py_IS_NONE(peer_alt_names)) {
             peer_alt_names = PyList_New(0);
             if (peer_alt_names == NULL)
                 goto fail;
@@ -1533,7 +1533,7 @@ _get_peer_alt_names (X509 *certificate) {
         sk_GENERAL_NAME_pop_free(names, GENERAL_NAME_free);
     }
     BIO_free(biobuf);
-    if (peer_alt_names != Py_None) {
+    if (!Py_IS_NONE(peer_alt_names)) {
         v = PyList_AsTuple(peer_alt_names);
         Py_DECREF(peer_alt_names);
         return v;
@@ -1546,7 +1546,7 @@ _get_peer_alt_names (X509 *certificate) {
     if (biobuf != NULL)
         BIO_free(biobuf);
 
-    if (peer_alt_names != Py_None) {
+    if (!Py_IS_NONE(peer_alt_names)) {
         Py_XDECREF(peer_alt_names);
     }
 
@@ -1782,7 +1782,7 @@ _decode_certificate(X509 *certificate) {
     peer_alt_names = _get_peer_alt_names(certificate);
     if (peer_alt_names == NULL)
         goto fail1;
-    else if (peer_alt_names != Py_None) {
+    else if (!Py_IS_NONE(peer_alt_names)) {
         if (PyDict_SetItemString(retval, "subjectAltName",
                                  peer_alt_names) < 0) {
             Py_DECREF(peer_alt_names);
@@ -1795,7 +1795,7 @@ _decode_certificate(X509 *certificate) {
     obj = _get_aia_uri(certificate, NID_ad_OCSP);
     if (obj == NULL) {
         goto fail1;
-    } else if (obj != Py_None) {
+    } else if (!Py_IS_NONE(obj)) {
         result = PyDict_SetItemString(retval, "OCSP", obj);
         Py_DECREF(obj);
         if (result < 0) {
@@ -1806,7 +1806,7 @@ _decode_certificate(X509 *certificate) {
     obj = _get_aia_uri(certificate, NID_ad_ca_issuers);
     if (obj == NULL) {
         goto fail1;
-    } else if (obj != Py_None) {
+    } else if (!Py_IS_NONE(obj)) {
         result = PyDict_SetItemString(retval, "caIssuers", obj);
         Py_DECREF(obj);
         if (result < 0) {
@@ -1818,7 +1818,7 @@ _decode_certificate(X509 *certificate) {
     obj = _get_crl_dp(certificate);
     if (obj == NULL) {
         goto fail1;
-    } else if (obj != Py_None) {
+    } else if (!Py_IS_NONE(obj)) {
         result = PyDict_SetItemString(retval, "crlDistributionPoints", obj);
         Py_DECREF(obj);
         if (result < 0) {
@@ -2390,7 +2390,7 @@ _ssl__SSLSocket_write_impl(PySSLSocket *self, Py_buffer *b)
     int has_timeout;
 
     if (sock != NULL) {
-        if (((PyObject*)sock) == Py_None) {
+        if (Py_IS_NONE((PyObject *)sock)) {
             _setSSLError("Underlying socket connection gone",
                          PY_SSL_ERROR_NO_SOCKET, __FILE__, __LINE__);
             return NULL;
@@ -2535,7 +2535,7 @@ _ssl__SSLSocket_read_impl(PySSLSocket *self, int len, int group_right_1,
     }
 
     if (sock != NULL) {
-        if (((PyObject*)sock) == Py_None) {
+        if (Py_IS_NONE((PyObject *)sock)) {
             _setSSLError("Underlying socket connection gone",
                          PY_SSL_ERROR_NO_SOCKET, __FILE__, __LINE__);
             return NULL;
@@ -2661,7 +2661,7 @@ _ssl__SSLSocket_shutdown_impl(PySSLSocket *self)
 
     if (sock != NULL) {
         /* Guard against closed socket */
-        if ((((PyObject*)sock) == Py_None) || (sock->sock_fd == INVALID_SOCKET)) {
+        if (Py_IS_NONE((PyObject *)sock) || (sock->sock_fd == INVALID_SOCKET)) {
             _setSSLError("Underlying socket connection gone",
                          PY_SSL_ERROR_NO_SOCKET, __FILE__, __LINE__);
             return NULL;
@@ -3987,7 +3987,7 @@ _ssl__SSLContext_load_cert_chain_impl(PySSLContext *self, PyObject *certfile,
 
     errno = 0;
     ERR_clear_error();
-    if (keyfile == Py_None)
+    if (Py_IS_NONE(keyfile))
         keyfile = NULL;
     if (!PyUnicode_FSConverter(certfile, &certfile_bytes)) {
         if (PyErr_ExceptionMatches(PyExc_TypeError)) {
@@ -4003,7 +4003,7 @@ _ssl__SSLContext_load_cert_chain_impl(PySSLContext *self, PyObject *certfile,
         }
         goto error;
     }
-    if (password != Py_None) {
+    if (!Py_IS_NONE(password)) {
         if (PyCallable_Check(password)) {
             pw_info.callable = password;
         } else if (!_pwinfo_set(&pw_info, password,
@@ -4179,11 +4179,11 @@ _ssl__SSLContext_load_verify_locations_impl(PySSLContext *self,
     int r = 0, ok = 1;
 
     errno = 0;
-    if (cafile == Py_None)
+    if (Py_IS_NONE(cafile))
         cafile = NULL;
-    if (capath == Py_None)
+    if (Py_IS_NONE(capath))
         capath = NULL;
-    if (cadata == Py_None)
+    if (Py_IS_NONE(cadata))
         cadata = NULL;
 
     if (cafile == NULL && capath == NULL && cadata == NULL) {
@@ -4349,7 +4349,7 @@ _ssl__SSLContext__wrap_socket_impl(PySSLContext *self, PyObject *sock,
 
     /* server_hostname is either None (or absent), or to be encoded
        as IDN A-label (ASCII str) without NULL bytes. */
-    if (hostname_obj != Py_None) {
+    if (!Py_IS_NONE(hostname_obj)) {
         if (!PyArg_Parse(hostname_obj, "es", "ascii", &hostname))
             return NULL;
     }
@@ -4387,7 +4387,7 @@ _ssl__SSLContext__wrap_bio_impl(PySSLContext *self, PySSLMemoryBIO *incoming,
 
     /* server_hostname is either None (or absent), or to be encoded
        as IDN A-label (ASCII str) without NULL bytes. */
-    if (hostname_obj != Py_None) {
+    if (!Py_IS_NONE(hostname_obj)) {
         if (!PyArg_Parse(hostname_obj, "es", "ascii", &hostname))
             return NULL;
     }
@@ -4535,7 +4535,7 @@ _servername_callback(SSL *s, int *al, void *args)
         ssl_socket = (PyObject *) ssl;
 
     Py_INCREF(ssl_socket);
-    if (ssl_socket == Py_None)
+    if (Py_IS_NONE(ssl_socket))
         goto error;
 
     if (servername == NULL) {
@@ -4577,7 +4577,7 @@ _servername_callback(SSL *s, int *al, void *args)
         /* Result may be None, a SSLContext or an integer
          * None and SSLContext are OK, integer or other values are an error.
          */
-        if (result == Py_None) {
+        if (Py_IS_NONE(result)) {
             ret = SSL_TLSEXT_ERR_OK;
         } else {
             *al = (int) PyLong_AsLong(result);
@@ -4623,7 +4623,7 @@ set_sni_callback(PySSLContext *self, PyObject *arg, void *c)
     }
 #if HAVE_SNI && !defined(OPENSSL_NO_TLSEXT)
     Py_CLEAR(self->set_sni_cb);
-    if (arg == Py_None) {
+    if (Py_IS_NONE(arg)) {
         SSL_CTX_set_tlsext_servername_callback(self->ctx, NULL);
     }
     else {

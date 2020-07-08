@@ -5049,7 +5049,7 @@ raise_SIGINT_then_send_None(PyObject *self, PyObject *args)
 static int
 fastcall_args(PyObject *args, PyObject ***stack, Py_ssize_t *nargs)
 {
-    if (args == Py_None) {
+    if (Py_IS_NONE(args)) {
         *stack = NULL;
         *nargs = 0;
     }
@@ -5098,7 +5098,7 @@ test_pyobject_fastcalldict(PyObject *self, PyObject *args)
         return NULL;
     }
 
-    if (kwargs == Py_None) {
+    if (Py_IS_NONE(kwargs)) {
         kwargs = NULL;
     }
     else if (!PyDict_Check(kwargs)) {
@@ -5125,7 +5125,7 @@ test_pyobject_vectorcall(PyObject *self, PyObject *args)
         return NULL;
     }
 
-    if (kwnames == Py_None) {
+    if (Py_IS_NONE(kwnames)) {
         kwnames = NULL;
     }
     else if (PyTuple_Check(kwnames)) {
@@ -5413,7 +5413,7 @@ test_write_unraisable_exc(PyObject *self, PyObject *args)
     }
 
     const char *err_msg_utf8;
-    if (err_msg != Py_None) {
+    if (!Py_IS_NONE(err_msg)) {
         err_msg_utf8 = PyUnicode_AsUTF8(err_msg);
         if (err_msg_utf8 == NULL) {
             return NULL;
@@ -6391,7 +6391,7 @@ MethodDescriptor_new(PyTypeObject* type, PyObject* args, PyObject *kw)
 static PyObject *
 func_descr_get(PyObject *func, PyObject *obj, PyObject *type)
 {
-    if (obj == Py_None || obj == NULL) {
+    if (Py_IS_NONE(obj) || obj == NULL) {
         Py_INCREF(func);
         return func;
     }

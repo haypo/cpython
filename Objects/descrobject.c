@@ -1559,7 +1559,7 @@ property_dealloc(PyObject *self)
 static PyObject *
 property_descr_get(PyObject *self, PyObject *obj, PyObject *type)
 {
-    if (obj == NULL || obj == Py_None) {
+    if (obj == NULL || Py_IS_NONE(obj)) {
         Py_INCREF(self);
         return self;
     }
@@ -1610,19 +1610,19 @@ property_copy(PyObject *old, PyObject *get, PyObject *set, PyObject *del)
     if (type == NULL)
         return NULL;
 
-    if (get == NULL || get == Py_None) {
+    if (get == NULL || Py_IS_NONE(get)) {
         Py_XDECREF(get);
         get = pold->prop_get ? pold->prop_get : Py_None;
     }
-    if (set == NULL || set == Py_None) {
+    if (set == NULL || Py_IS_NONE(set)) {
         Py_XDECREF(set);
         set = pold->prop_set ? pold->prop_set : Py_None;
     }
-    if (del == NULL || del == Py_None) {
+    if (del == NULL || Py_IS_NONE(del)) {
         Py_XDECREF(del);
         del = pold->prop_del ? pold->prop_del : Py_None;
     }
-    if (pold->getter_doc && get != Py_None) {
+    if (pold->getter_doc && !Py_IS_NONE(get)) {
         /* make _init use __doc__ from getter */
         doc = Py_None;
     }
@@ -1679,11 +1679,11 @@ property_init_impl(propertyobject *self, PyObject *fget, PyObject *fset,
                    PyObject *fdel, PyObject *doc)
 /*[clinic end generated code: output=01a960742b692b57 input=dfb5dbbffc6932d5]*/
 {
-    if (fget == Py_None)
+    if (Py_IS_NONE(fget))
         fget = NULL;
-    if (fset == Py_None)
+    if (Py_IS_NONE(fset))
         fset = NULL;
-    if (fdel == Py_None)
+    if (Py_IS_NONE(fdel))
         fdel = NULL;
 
     Py_XINCREF(fget);
@@ -1698,7 +1698,7 @@ property_init_impl(propertyobject *self, PyObject *fget, PyObject *fset,
     self->getter_doc = 0;
 
     /* if no docstring given and the getter has one, use that one */
-    if ((doc == NULL || doc == Py_None) && fget != NULL) {
+    if ((doc == NULL || Py_IS_NONE(doc)) && fget != NULL) {
         _Py_IDENTIFIER(__doc__);
         PyObject *get_doc;
         int rc = _PyObject_LookupAttrId(fget, &PyId___doc__, &get_doc);

@@ -103,12 +103,16 @@ STRINGLIB(parse_args_finds)(const char * function_name, PyObject *args,
     /* To support None in "start" and "end" arguments, meaning
        the same as if they were not passed.
     */
-    if (obj_start != Py_None)
-        if (!_PyEval_SliceIndex(obj_start, &tmp_start))
+    if (!Py_IS_NONE(obj_start)) {
+        if (!_PyEval_SliceIndex(obj_start, &tmp_start)) {
             return 0;
-    if (obj_end != Py_None)
-        if (!_PyEval_SliceIndex(obj_end, &tmp_end))
+        }
+    }
+    if (!Py_IS_NONE(obj_end)) {
+        if (!_PyEval_SliceIndex(obj_end, &tmp_end)) {
             return 0;
+        }
+    }
 
     *start = tmp_start;
     *end = tmp_end;

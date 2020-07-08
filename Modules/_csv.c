@@ -229,7 +229,7 @@ _set_char(const char *name, Py_UCS4 *target, PyObject *src, Py_UCS4 dflt)
         *target = dflt;
     else {
         *target = '\0';
-        if (src != Py_None) {
+        if (!Py_IS_NONE(src)) {
             Py_ssize_t len;
             if (!PyUnicode_Check(src)) {
                 PyErr_Format(PyExc_TypeError,
@@ -258,7 +258,7 @@ _set_str(const char *name, PyObject **target, PyObject *src, const char *dflt)
     if (src == NULL)
         *target = PyUnicode_DecodeASCII(dflt, strlen(dflt), NULL);
     else {
-        if (src == Py_None)
+        if (Py_IS_NONE(src))
             *target = NULL;
         else if (!PyUnicode_Check(src)) {
             PyErr_Format(PyExc_TypeError,
@@ -426,7 +426,7 @@ dialect_new(PyTypeObject *type, PyObject *args, PyObject *kwargs)
                         "\"delimiter\" must be a 1-character string");
         goto err;
     }
-    if (quotechar == Py_None && quoting == NULL)
+    if (Py_IS_NONE(quotechar) && quoting == NULL)
         self->quoting = QUOTE_NONE;
     if (self->quoting != QUOTE_NONE && self->quotechar == 0) {
         PyErr_SetString(PyExc_TypeError,
@@ -1196,7 +1196,7 @@ csv_writerow(WriterObj *self, PyObject *seq)
             append_ok = join_append(self, field, quoted);
             Py_DECREF(field);
         }
-        else if (field == Py_None) {
+        else if (Py_IS_NONE(field)) {
             append_ok = join_append(self, NULL, quoted);
             Py_DECREF(field);
         }

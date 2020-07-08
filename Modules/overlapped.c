@@ -434,7 +434,7 @@ _overlapped_CreateEvent_impl(PyObject *module, PyObject *EventAttributes,
 {
     HANDLE Event;
 
-    if (EventAttributes != Py_None) {
+    if (!Py_IS_NONE(EventAttributes)) {
         PyErr_SetString(PyExc_ValueError, "EventAttributes must be None");
         return NULL;
     }

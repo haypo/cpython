@@ -1283,7 +1283,7 @@ s_set(void *ptr, PyObject *value, Py_ssize_t length)
 static PyObject *
 z_set(void *ptr, PyObject *value, Py_ssize_t size)
 {
-    if (value == Py_None) {
+    if (Py_IS_NONE(value)) {
         *(char **)ptr = NULL;
         Py_INCREF(value);
         return value;
@@ -1325,7 +1325,7 @@ Z_set(void *ptr, PyObject *value, Py_ssize_t size)
     PyObject *keep;
     wchar_t *buffer;
 
-    if (value == Py_None) {
+    if (Py_IS_NONE(value)) {
         *(wchar_t **)ptr = NULL;
         Py_INCREF(value);
         return value;
@@ -1437,7 +1437,7 @@ static PyObject *
 P_set(void *ptr, PyObject *value, Py_ssize_t size)
 {
     void *v;
-    if (value == Py_None) {
+    if (Py_IS_NONE(value)) {
         *(void **)ptr = NULL;
         _RET(value);
     }

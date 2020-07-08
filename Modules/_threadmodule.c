@@ -994,7 +994,7 @@ _localdummy_destroyed(PyObject *localweakref, PyObject *dummyweakref)
     localobject *self;
     assert(PyWeakref_CheckRef(localweakref));
     obj = PyWeakref_GET_OBJECT(localweakref);
-    if (obj == Py_None)
+    if (Py_IS_NONE(obj))
         Py_RETURN_NONE;
     Py_INCREF(obj);
     assert(PyObject_TypeCheck(obj, &localtype));
@@ -1243,7 +1243,7 @@ release_sentinel(void *wr_raw)
        execute here. */
     PyObject *obj = PyWeakref_GET_OBJECT(wr);
     lockobject *lock;
-    if (obj != Py_None) {
+    if (!Py_IS_NONE(obj)) {
         assert(Py_IS_TYPE(obj, &Locktype));
         lock = (lockobject *) obj;
         if (lock->locked) {
@@ -1360,7 +1360,7 @@ thread_excepthook_file(PyObject *file, PyObject *exc_type, PyObject *exc_value,
     }
 
     PyObject *name = NULL;
-    if (thread != Py_None) {
+    if (!Py_IS_NONE(thread)) {
         if (_PyObject_LookupAttrId(thread, &PyId_name, &name) < 0) {
             return -1;
         }
@@ -1455,8 +1455,8 @@ thread_excepthook(PyObject *self, PyObject *args)
     PyObject *thread = PyStructSequence_GET_ITEM(args, 3);
 
     PyObject *file = _PySys_GetObjectId(&PyId_stderr);
-    if (file == NULL || file == Py_None) {
-        if (thread == Py_None) {
+    if (file == NULL || Py_IS_NONE(file)) {
+        if (Py_IS_NONE(thread)) {
             /* do nothing if sys.stderr is None and thread is None */
             Py_RETURN_NONE;
         }
@@ -1465,7 +1465,7 @@ thread_excepthook(PyObject *self, PyObject *args)
         if (file == NULL) {
             return NULL;
         }
-        if (file == Py_None) {
+        if (Py_IS_NONE(file)) {
             Py_DECREF(file);
             /* do nothing if sys.stderr is None and sys.stderr was None
                when the thread was created */

@@ -907,7 +907,7 @@ ternary_op(PyObject *v,
         }
     }
 
-    if (z == Py_None)
+    if (Py_IS_NONE(z))
         PyErr_Format(
             PyExc_TypeError,
             "unsupported operand type(s) for ** or pow(): "

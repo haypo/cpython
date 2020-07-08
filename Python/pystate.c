@@ -669,7 +669,7 @@ PyState_FindModule(struct PyModuleDef* module)
     if (index >= PyList_GET_SIZE(state->modules_by_index))
         return NULL;
     res = PyList_GET_ITEM(state->modules_by_index, index);
-    return res==Py_None ? NULL : res;
+    return Py_IS_NONE(res) ? NULL : res;
 }
 
 int

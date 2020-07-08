@@ -204,7 +204,7 @@ _PyPegen_get_expr_name(expr_ty e)
             return "f-string expression";
         case Constant_kind: {
             PyObject *value = e->v.Constant.value;
-            if (value == Py_None) {
+            if (Py_IS_NONE(value)) {
                 return "None";
             }
             if (value == Py_False) {

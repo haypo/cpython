@@ -621,7 +621,7 @@ Compressor_init_xz(_lzma_state *state, lzma_stream *lzs,
 {
     lzma_ret lzret;
 
-    if (filterspecs == Py_None) {
+    if (Py_IS_NONE(filterspecs)) {
         lzret = lzma_easy_encoder(lzs, preset, check);
     } else {
         lzma_filter filters[LZMA_FILTERS_MAX + 1];
@@ -644,7 +644,7 @@ Compressor_init_alone(_lzma_state *state, lzma_stream *lzs, uint32_t preset, PyO
 {
     lzma_ret lzret;
 
-    if (filterspecs == Py_None) {
+    if (Py_IS_NONE(filterspecs)) {
         lzma_options_lzma options;
 
         if (lzma_lzma_preset(&options, preset)) {
@@ -682,7 +682,7 @@ Compressor_init_raw(_lzma_state *state, lzma_stream *lzs, PyObject *filterspecs)
     lzma_filter filters[LZMA_FILTERS_MAX + 1];
     lzma_ret lzret;
 
-    if (filterspecs == Py_None) {
+    if (Py_IS_NONE(filterspecs)) {
         PyErr_SetString(PyExc_ValueError,
                         "Must specify filters for FORMAT_RAW");
         return -1;
@@ -756,13 +756,13 @@ Compressor_init(Compressor *self, PyObject *args, PyObject *kwargs)
         return -1;
     }
 
-    if (preset_obj != Py_None && filterspecs != Py_None) {
+    if (!Py_IS_NONE(preset_obj) && !Py_IS_NONE(filterspecs)) {
         PyErr_SetString(PyExc_ValueError,
                         "Cannot specify both preset and filter chain");
         return -1;
     }
 
-    if (preset_obj != Py_None) {
+    if (!Py_IS_NONE(preset_obj)) {
         if (!uint32_converter(preset_obj, &preset)) {
             return -1;
         }
@@ -1196,7 +1196,7 @@ _lzma_LZMADecompressor___init___impl(Decompressor *self, int format,
     _lzma_state *state = PyType_GetModuleState(Py_TYPE(self));
     assert(state != NULL);
 
-    if (memlimit != Py_None) {
+    if (!Py_IS_NONE(memlimit)) {
         if (format == FORMAT_RAW) {
             PyErr_SetString(PyExc_ValueError,
                             "Cannot specify memory limit with FORMAT_RAW");
@@ -1208,11 +1208,11 @@ _lzma_LZMADecompressor___init___impl(Decompressor *self, int format,
         }
     }
 
-    if (format == FORMAT_RAW && filters == Py_None) {
+    if (format == FORMAT_RAW && Py_IS_NONE(filters)) {
         PyErr_SetString(PyExc_ValueError,
                         "Must specify filters for FORMAT_RAW");
         return -1;
-    } else if (format != FORMAT_RAW && filters != Py_None) {
+    } else if (format != FORMAT_RAW && !Py_IS_NONE(filters)) {
         PyErr_SetString(PyExc_ValueError,
                         "Cannot specify filters except with FORMAT_RAW");
         return -1;

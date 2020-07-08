@@ -1151,7 +1151,7 @@ pbkdf2_hmac_impl(PyObject *module, const char *hash_name,
         goto end;
     }
 
-    if (dklen_obj == Py_None) {
+    if (Py_IS_NONE(dklen_obj)) {
         dklen = EVP_MD_size(digest);
     } else {
         dklen = PyLong_AsLong(dklen_obj);
@@ -1444,7 +1444,7 @@ _hashlib_hmac_new_impl(PyObject *module, Py_buffer *key, PyObject *msg_obj,
     self->ctx = ctx;
     self->lock = NULL;
 
-    if ((msg_obj != NULL) && (msg_obj != Py_None)) {
+    if ((msg_obj != NULL) && (!Py_IS_NONE(msg_obj))) {
         if (!_hmac_update(self, msg_obj))
             goto error;
     }

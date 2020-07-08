@@ -592,7 +592,7 @@ _PyObject_FunctionStr(PyObject *x)
     PyObject *module;
     PyObject *result = NULL;
     ret = _PyObject_LookupAttrId(x, &PyId___module__, &module);
-    if (module != NULL && module != Py_None) {
+    if (module != NULL && !Py_IS_NONE(module)) {
         PyObject *builtinsname = _PyUnicode_FromId(&PyId_builtins);
         if (builtinsname == NULL) {
             goto done;
@@ -1398,7 +1398,7 @@ PyObject_IsTrue(PyObject *v)
         return 1;
     if (v == Py_False)
         return 0;
-    if (v == Py_None)
+    if (Py_IS_NONE(v))
         return 0;
     else if (Py_TYPE(v)->tp_as_number != NULL &&
              Py_TYPE(v)->tp_as_number->nb_bool != NULL)

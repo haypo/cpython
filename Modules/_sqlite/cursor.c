@@ -264,7 +264,7 @@ _pysqlite_fetch_one_row(pysqlite_Cursor* self)
             converter = Py_None;
         }
 
-        if (converter != Py_None) {
+        if (!Py_IS_NONE(converter)) {
             nbytes = sqlite3_column_bytes(self->statement->st, i);
             val_str = (const char*)sqlite3_column_blob(self->statement->st, i);
             if (!val_str) {
@@ -535,7 +535,7 @@ _pysqlite_query_execute(pysqlite_Cursor* self, int multiple, PyObject* args)
         Py_BEGIN_ALLOW_THREADS
         numcols = sqlite3_column_count(self->statement->st);
         Py_END_ALLOW_THREADS
-        if (self->description == Py_None && numcols > 0) {
+        if (Py_IS_NONE(self->description) && numcols > 0) {
             Py_SETREF(self->description, PyTuple_New(numcols));
             if (!self->description) {
                 goto error;
@@ -734,7 +734,7 @@ PyObject* pysqlite_cursor_iternext(pysqlite_Cursor *self)
     assert(next_row_tuple != NULL);
     self->next_row = NULL;
 
-    if (self->row_factory != Py_None) {
+    if (!Py_IS_NONE(self->row_factory)) {
         next_row = PyObject_CallFunction(self->row_factory, "OO", self, next_row_tuple);
         if (next_row == NULL) {
             self->next_row = next_row_tuple;

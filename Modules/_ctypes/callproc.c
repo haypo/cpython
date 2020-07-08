@@ -680,7 +680,7 @@ static int ConvParam(PyObject *obj, Py_ssize_t index, struct argument *pa)
     }
 
     /* check for None, integer, string or unicode and use directly if successful */
-    if (obj == Py_None) {
+    if (Py_IS_NONE(obj)) {
         pa->ffi_type = &ffi_type_pointer;
         pa->value.p = NULL;
         return 0;
@@ -921,7 +921,7 @@ static PyObject *GetResult(PyObject *restype, void *result, PyObject *checker)
     if (restype == NULL)
         return PyLong_FromLong(*(int *)result);
 
-    if (restype == Py_None) {
+    if (Py_IS_NONE(restype)) {
         Py_RETURN_NONE;
     }
 
@@ -1412,7 +1412,7 @@ static PyObject *py_dl_open(PyObject *self, PyObject *args)
     if (!PyArg_ParseTuple(args, "O|i:dlopen", &name, &mode))
         return NULL;
     mode |= RTLD_NOW;
-    if (name != Py_None) {
+    if (!Py_IS_NONE(name)) {
         if (PyUnicode_FSConverter(name, &name2) == 0)
             return NULL;
         name_str = PyBytes_AS_STRING(name2);

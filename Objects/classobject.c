@@ -222,7 +222,7 @@ method_new(PyTypeObject* type, PyObject* args, PyObject *kw)
                         "first argument must be callable");
         return NULL;
     }
-    if (self == NULL || self == Py_None) {
+    if (self == NULL || Py_IS_NONE(self)) {
         PyErr_SetString(PyExc_TypeError,
             "self must not be None");
         return NULL;

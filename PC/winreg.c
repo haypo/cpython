@@ -418,7 +418,7 @@ PyHKEY_Close(PyObject *ob_handle)
 BOOL
 PyHKEY_AsHKEY(PyObject *ob, HKEY *pHANDLE, BOOL bNoneOK)
 {
-    if (ob == Py_None) {
+    if (Py_IS_NONE(ob)) {
         if (!bNoneOK) {
             PyErr_SetString(
                       PyExc_TypeError,
@@ -565,7 +565,7 @@ Py2Reg(PyObject *value, DWORD typ, BYTE **retDataBuf, DWORD *retDataSize)
     Py_ssize_t i,j;
     switch (typ) {
         case REG_DWORD:
-            if (value != Py_None && !PyLong_Check(value))
+            if (!Py_IS_NONE(value) && !PyLong_Check(value))
                 return FALSE;
             *retDataBuf = (BYTE *)PyMem_NEW(DWORD, 1);
             if (*retDataBuf == NULL){
@@ -573,7 +573,7 @@ Py2Reg(PyObject *value, DWORD typ, BYTE **retDataBuf, DWORD *retDataSize)
                 return FALSE;
             }
             *retDataSize = sizeof(DWORD);
-            if (value == Py_None) {
+            if (Py_IS_NONE(value)) {
                 DWORD zero = 0;
                 memcpy(*retDataBuf, &zero, sizeof(DWORD));
             }
@@ -583,7 +583,7 @@ Py2Reg(PyObject *value, DWORD typ, BYTE **retDataBuf, DWORD *retDataSize)
             }
             break;
         case REG_QWORD:
-          if (value != Py_None && !PyLong_Check(value))
+          if (!Py_IS_NONE(value) && !PyLong_Check(value))
                 return FALSE;
             *retDataBuf = (BYTE *)PyMem_NEW(DWORD64, 1);
             if (*retDataBuf == NULL){
@@ -591,7 +591,7 @@ Py2Reg(PyObject *value, DWORD typ, BYTE **retDataBuf, DWORD *retDataSize)
                 return FALSE;
             }
             *retDataSize = sizeof(DWORD64);
-            if (value == Py_None) {
+            if (Py_IS_NONE(value)) {
                 DWORD64 zero = 0;
                 memcpy(*retDataBuf, &zero, sizeof(DWORD64));
             }
@@ -603,7 +603,7 @@ Py2Reg(PyObject *value, DWORD typ, BYTE **retDataBuf, DWORD *retDataSize)
         case REG_SZ:
         case REG_EXPAND_SZ:
             {
-                if (value != Py_None) {
+                if (!Py_IS_NONE(value)) {
                     Py_ssize_t len;
                     if (!PyUnicode_Check(value))
                         return FALSE;
@@ -630,7 +630,7 @@ Py2Reg(PyObject *value, DWORD typ, BYTE **retDataBuf, DWORD *retDataSize)
                 DWORD size = 0;
                 wchar_t *P;
 
-                if (value == Py_None)
+                if (Py_IS_NONE(value))
                     i = 0;
                 else {
                     if (!PyList_Check(value))
@@ -692,7 +692,7 @@ _Py_COMP_DIAG_POP
         /* ALSO handle ALL unknown data types here.  Even if we can't
            support it natively, we should handle the bits. */
         default:
-            if (value == Py_None) {
+            if (Py_IS_NONE(value)) {
                 *retDataSize = 0;
                 *retDataBuf = NULL;
             }

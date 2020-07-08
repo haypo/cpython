@@ -866,7 +866,7 @@ deepcopy(PyObject *object, PyObject *memo)
     PyObject *stack[2];
 
     /* Fast paths */
-    if (object == Py_None || PyUnicode_CheckExact(object)) {
+    if (Py_IS_NONE(object) || PyUnicode_CheckExact(object)) {
         Py_INCREF(object);
         return object;
     }
@@ -1230,7 +1230,7 @@ _elementtree_Element_find_impl(ElementObject *self, PyObject *path,
     Py_ssize_t i;
     elementtreestate *st = ET_STATE_GLOBAL;
 
-    if (checkpath(path) || namespaces != Py_None) {
+    if (checkpath(path) || !Py_IS_NONE(namespaces)) {
         _Py_IDENTIFIER(find);
         return _PyObject_CallMethodIdObjArgs(
             st->elementpath_obj, &PyId_find, self, path, namespaces, NULL
@@ -1275,7 +1275,7 @@ _elementtree_Element_findtext_impl(ElementObject *self, PyObject *path,
     _Py_IDENTIFIER(findtext);
     elementtreestate *st = ET_STATE_GLOBAL;
 
-    if (checkpath(path) || namespaces != Py_None)
+    if (checkpath(path) || !Py_IS_NONE(namespaces))
         return _PyObject_CallMethodIdObjArgs(
             st->elementpath_obj, &PyId_findtext,
             self, path, default_value, namespaces, NULL
@@ -1294,7 +1294,7 @@ _elementtree_Element_findtext_impl(ElementObject *self, PyObject *path,
         rc = PyObject_RichCompareBool(((ElementObject*)item)->tag, path, Py_EQ);
         if (rc > 0) {
             PyObject* text = element_get_text((ElementObject*)item);
-            if (text == Py_None) {
+            if (Py_IS_NONE(text)) {
                 Py_DECREF(item);
                 return PyUnicode_New(0, 0);
             }
@@ -1328,7 +1328,7 @@ _elementtree_Element_findall_impl(ElementObject *self, PyObject *path,
     PyObject* out;
     elementtreestate *st = ET_STATE_GLOBAL;
 
-    if (checkpath(path) || namespaces != Py_None) {
+    if (checkpath(path) || !Py_IS_NONE(namespaces)) {
         _Py_IDENTIFIER(findall);
         return _PyObject_CallMethodIdObjArgs(
             st->elementpath_obj, &PyId_findall, self, path, namespaces, NULL
@@ -2211,7 +2211,7 @@ elementiter_next(ElementIterObject *it)
             goto gettext;
         }
 
-        if (it->sought_tag == Py_None)
+        if (Py_IS_NONE(it->sought_tag))
             return (PyObject *)elem;
 
         rc = PyObject_RichCompareBool(elem->tag, it->sought_tag, Py_EQ);
@@ -2228,7 +2228,7 @@ gettext:
             Py_DECREF(elem);
             return NULL;
         }
-        if (text == Py_None) {
+        if (Py_IS_NONE(text)) {
             Py_DECREF(elem);
         }
         else {
@@ -2416,14 +2416,14 @@ _elementtree_TreeBuilder___init___impl(TreeBuilderObject *self,
                                        int insert_comments, int insert_pis)
 /*[clinic end generated code: output=8571d4dcadfdf952 input=ae98a94df20b5cc3]*/
 {
-    if (element_factory != Py_None) {
+    if (!Py_IS_NONE(element_factory)) {
         Py_INCREF(element_factory);
         Py_XSETREF(self->element_factory, element_factory);
     } else {
         Py_CLEAR(self->element_factory);
     }
 
-    if (comment_factory == Py_None) {
+    if (Py_IS_NONE(comment_factory)) {
         elementtreestate *st = ET_STATE_GLOBAL;
         comment_factory = st->comment_factory;
     }
@@ -2436,7 +2436,7 @@ _elementtree_TreeBuilder___init___impl(TreeBuilderObject *self,
         self->insert_comments = 0;
     }
 
-    if (pi_factory == Py_None) {
+    if (Py_IS_NONE(pi_factory)) {
         elementtreestate *st = ET_STATE_GLOBAL;
         pi_factory = st->pi_factory;
     }
@@ -2527,12 +2527,12 @@ _elementtree__set_factories_impl(PyObject *module, PyObject *comment_factory,
     elementtreestate *st = ET_STATE_GLOBAL;
     PyObject *old;
 
-    if (!PyCallable_Check(comment_factory) && comment_factory != Py_None) {
+    if (!PyCallable_Check(comment_factory) && !Py_IS_NONE(comment_factory)) {
         PyErr_Format(PyExc_TypeError, "Comment factory must be callable, not %.100s",
                      Py_TYPE(comment_factory)->tp_name);
         return NULL;
     }
-    if (!PyCallable_Check(pi_factory) && pi_factory != Py_None) {
+    if (!PyCallable_Check(pi_factory) && !Py_IS_NONE(pi_factory)) {
         PyErr_Format(PyExc_TypeError, "PI factory must be callable, not %.100s",
                      Py_TYPE(pi_factory)->tp_name);
         return NULL;
@@ -2542,13 +2542,13 @@ _elementtree__set_factories_impl(PyObject *module, PyObject *comment_factory,
         st->comment_factory ? st->comment_factory : Py_None,
         st->pi_factory ? st->pi_factory : Py_None);
 
-    if (comment_factory == Py_None) {
+    if (Py_IS_NONE(comment_factory)) {
         Py_CLEAR(st->comment_factory);
     } else {
         Py_INCREF(comment_factory);
         Py_XSETREF(st->comment_factory, comment_factory);
     }
-    if (pi_factory == Py_None) {
+    if (Py_IS_NONE(pi_factory)) {
         Py_CLEAR(st->pi_factory);
     } else {
         Py_INCREF(pi_factory);
@@ -2565,7 +2565,7 @@ treebuilder_extend_element_text_or_tail(PyObject *element, PyObject **data,
     /* Fast paths for the "almost always" cases. */
     if (Element_CheckExact(element)) {
         PyObject *dest_obj = JOIN_OBJ(*dest);
-        if (dest_obj == Py_None) {
+        if (Py_IS_NONE(dest_obj)) {
             *dest = JOIN_SET(*data, PyList_CheckExact(*data));
             *data = NULL;
             Py_DECREF(dest_obj);
@@ -2592,7 +2592,7 @@ treebuilder_extend_element_text_or_tail(PyObject *element, PyObject **data,
             Py_DECREF(previous);
             return -1;
         }
-        if (previous != Py_None) {
+        if (!Py_IS_NONE(previous)) {
             PyObject *tmp = PyNumber_Add(previous, joined);
             Py_DECREF(joined);
             Py_DECREF(previous);
@@ -2707,7 +2707,7 @@ treebuilder_handle_start(TreeBuilderObject* self, PyObject* tag,
     this = self->this;
     Py_CLEAR(self->last_for_tail);
 
-    if (this != Py_None) {
+    if (!Py_IS_NONE(this)) {
         if (treebuilder_add_subelement(this, node) < 0)
             goto error;
     } else {
@@ -2751,7 +2751,7 @@ LOCAL(PyObject*)
 treebuilder_handle_data(TreeBuilderObject* self, PyObject* data)
 {
     if (!self->data) {
-        if (self->last == Py_None) {
+        if (Py_IS_NONE(self->last)) {
             /* ignore calls to data before the first call to start */
             Py_RETURN_NONE;
         }
@@ -2833,7 +2833,7 @@ treebuilder_handle_comment(TreeBuilderObject* self, PyObject* text)
             return NULL;
 
         this = self->this;
-        if (self->insert_comments && this != Py_None) {
+        if (self->insert_comments && !Py_IS_NONE(this)) {
             if (treebuilder_add_subelement(this, comment) < 0)
                 goto error;
             Py_INCREF(comment);
@@ -2874,7 +2874,7 @@ treebuilder_handle_pi(TreeBuilderObject* self, PyObject* target, PyObject* text)
         }
 
         this = self->this;
-        if (self->insert_pis && this != Py_None) {
+        if (self->insert_pis && !Py_IS_NONE(this)) {
             if (treebuilder_add_subelement(this, pi) < 0)
                 goto error;
             Py_INCREF(pi);
@@ -4067,7 +4067,7 @@ _elementtree_XMLParser__setevents_impl(XMLParserObject *self,
     Py_CLEAR(target->comment_event_obj);
     Py_CLEAR(target->pi_event_obj);
 
-    if (events_to_report == Py_None) {
+    if (Py_IS_NONE(events_to_report)) {
         /* default is "end" only */
         target->end_event_obj = PyUnicode_FromString("end");
         Py_RETURN_NONE;

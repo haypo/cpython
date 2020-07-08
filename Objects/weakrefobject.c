@@ -55,7 +55,7 @@ clear_weakref(PyWeakReference *self)
 {
     PyObject *callback = self->wr_callback;
 
-    if (self->wr_object != Py_None) {
+    if (!Py_IS_NONE(self->wr_object)) {
         PyWeakReference **list = GET_WEAKREFS_LISTPTR(self->wr_object);
 
         if (*list == self)
@@ -147,7 +147,7 @@ weakref_hash(PyWeakReference *self)
     if (self->hash != -1)
         return self->hash;
     PyObject* obj = PyWeakref_GET_OBJECT(self);
-    if (obj == Py_None) {
+    if (Py_IS_NONE(obj)) {
         PyErr_SetString(PyExc_TypeError, "weak object has gone away");
         return -1;
     }
@@ -165,7 +165,7 @@ weakref_repr(PyWeakReference *self)
     _Py_IDENTIFIER(__name__);
     PyObject* obj = PyWeakref_GET_OBJECT(self);
 
-    if (obj == Py_None) {
+    if (Py_IS_NONE(obj)) {
         return PyUnicode_FromFormat("<weakref at %p; dead>", self);
     }
 
@@ -206,8 +206,8 @@ weakref_richcompare(PyWeakReference* self, PyWeakReference* other, int op)
         !PyWeakref_Check(other)) {
         Py_RETURN_NOTIMPLEMENTED;
     }
-    if (PyWeakref_GET_OBJECT(self) == Py_None
-        || PyWeakref_GET_OBJECT(other) == Py_None) {
+    if (Py_IS_NONE(PyWeakref_GET_OBJECT(self))
+        || Py_IS_NONE(PyWeakref_GET_OBJECT(other))) {
         int res = (self == other);
         if (op == Py_NE)
             res = !res;
@@ -304,7 +304,7 @@ weakref___new__(PyTypeObject *type, PyObject *args, PyObject *kwargs)
                          Py_TYPE(ob)->tp_name);
             return NULL;
         }
-        if (callback == Py_None)
+        if (Py_IS_NONE(callback))
             callback = NULL;
         list = GET_WEAKREFS_LISTPTR(ob);
         get_basic_refs(*list, &ref, &proxy);
@@ -416,7 +416,7 @@ _PyWeakref_RefType = {
 static int
 proxy_checkref(PyWeakReference *proxy)
 {
-    if (PyWeakref_GET_OBJECT(proxy) == Py_None) {
+    if (Py_IS_NONE(PyWeakref_GET_OBJECT(proxy))) {
         PyErr_SetString(PyExc_ReferenceError,
                         "weakly-referenced object no longer exists");
         return 0;
@@ -830,7 +830,7 @@ PyWeakref_NewRef(PyObject *ob, PyObject *callback)
     }
     list = GET_WEAKREFS_LISTPTR(ob);
     get_basic_refs(*list, &ref, &proxy);
-    if (callback == Py_None)
+    if (Py_IS_NONE(callback))
         callback = NULL;
     if (callback == NULL)
         /* return existing weak reference if it exists */
@@ -889,7 +889,7 @@ PyWeakref_NewProxy(PyObject *ob, PyObject *callback)
     }
     list = GET_WEAKREFS_LISTPTR(ob);
     get_basic_refs(*list, &ref, &proxy);
-    if (callback == Py_None)
+    if (Py_IS_NONE(callback))
         callback = NULL;
     if (callback == NULL)
         /* attempt to return an existing weak reference if it exists */

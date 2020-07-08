@@ -136,7 +136,7 @@ pymain_get_importer(const wchar_t *filename, PyObject **importer_p, int *exitcod
         goto error;
     }
 
-    if (importer == Py_None) {
+    if (Py_IS_NONE(importer)) {
         Py_DECREF(sys_path0);
         Py_DECREF(importer);
         return 0;

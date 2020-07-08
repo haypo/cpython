@@ -372,7 +372,7 @@ partial_setstate(partialobject *pto, PyObject *state)
         !PyArg_ParseTuple(state, "OOOO", &fn, &fnargs, &kw, &dict) ||
         !PyCallable_Check(fn) ||
         !PyTuple_Check(fnargs) ||
-        (kw != Py_None && !PyDict_Check(kw)))
+        (!Py_IS_NONE(kw) && !PyDict_Check(kw)))
     {
         PyErr_SetString(PyExc_TypeError, "invalid partial state");
         return NULL;
@@ -385,7 +385,7 @@ partial_setstate(partialobject *pto, PyObject *state)
     if (fnargs == NULL)
         return NULL;
 
-    if (kw == Py_None)
+    if (Py_IS_NONE(kw))
         kw = PyDict_New();
     else if(!PyDict_CheckExact(kw))
         kw = PyDict_Copy(kw);
@@ -396,7 +396,7 @@ partial_setstate(partialobject *pto, PyObject *state)
         return NULL;
     }
 
-    if (dict == Py_None)
+    if (Py_IS_NONE(dict))
         dict = NULL;
     else
         Py_INCREF(dict);
@@ -1076,7 +1076,7 @@ bounded_lru_cache_wrapper(lru_cache_object *self, PyObject *args, PyObject *kwds
        The linked list only has borrowed references. */
     popresult = _PyDict_Pop_KnownHash(self->cache, link->key,
                                       link->hash, Py_None);
-    if (popresult == Py_None) {
+    if (Py_IS_NONE(popresult)) {
         /* Getting here means that the user function call or another
            thread has already removed the old key from the dictionary.
            This link is now an orphan.  Since we don't want to leave the
@@ -1155,7 +1155,7 @@ lru_cache_new(PyTypeObject *type, PyObject *args, PyObject *kw)
     }
 
     /* select the caching function, and make/inc maxsize_O */
-    if (maxsize_O == Py_None) {
+    if (Py_IS_NONE(maxsize_O)) {
         wrapper = infinite_lru_cache_wrapper;
         /* use this only to initialize lru_cache_object attribute maxsize */
         maxsize = -1;
@@ -1249,7 +1249,7 @@ lru_cache_call(lru_cache_object *self, PyObject *args, PyObject *kwds)
 static PyObject *
 lru_cache_descr_get(PyObject *self, PyObject *obj, PyObject *type)
 {
-    if (obj == Py_None || obj == NULL) {
+    if (Py_IS_NONE(obj) || obj == NULL) {
         Py_INCREF(self);
         return self;
     }

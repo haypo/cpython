@@ -1373,7 +1373,7 @@ Tkapp_CallArgs(PyObject *args, Tcl_Obj** objStore, int *pobjc)
 
         for (i = 0; i < objc; i++) {
             PyObject *v = PySequence_Fast_GET_ITEM(args, i);
-            if (v == Py_None) {
+            if (Py_IS_NONE(v)) {
                 objc = i;
                 break;
             }
@@ -3098,7 +3098,7 @@ _flatten1(FlattenContext* context, PyObject* item, int depth)
             if (PyList_Check(o) || PyTuple_Check(o)) {
                 if (!_flatten1(context, o, depth + 1))
                     return 0;
-            } else if (o != Py_None) {
+            } else if (!Py_IS_NONE(o)) {
                 if (context->size + 1 > context->maxsize &&
                     !_bump(context, 1))
                     return 0;

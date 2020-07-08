@@ -120,7 +120,7 @@ int pysqlite_statement_bind_parameter(pysqlite_Statement* self, int pos, PyObjec
     Py_ssize_t buflen;
     parameter_type paramtype;
 
-    if (parameter == Py_None) {
+    if (Py_IS_NONE(parameter)) {
         rc = sqlite3_bind_null(self->st, pos);
         goto final;
     }

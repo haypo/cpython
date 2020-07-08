@@ -1203,7 +1203,7 @@ merge_consts_recursive(struct compiler *c, PyObject *o)
 {
     // None and Ellipsis are singleton, and key is the singleton.
     // No need to merge object and key.
-    if (o == Py_None || o == Py_Ellipsis) {
+    if (Py_IS_NONE(o) || o == Py_Ellipsis) {
         Py_INCREF(o);
         return o;
     }
@@ -2440,7 +2440,7 @@ check_is_arg(expr_ty e)
         return 1;
     }
     PyObject *value = e->v.Constant.value;
-    return (value == Py_None
+    return (Py_IS_NONE(value)
          || value == Py_False
          || value == Py_True
          || value == Py_Ellipsis);
@@ -4022,7 +4022,7 @@ check_subscripter(struct compiler *c, expr_ty e)
     switch (e->kind) {
     case Constant_kind:
         v = e->v.Constant.value;
-        if (!(v == Py_None || v == Py_Ellipsis ||
+        if (!(Py_IS_NONE(v) || v == Py_Ellipsis ||
               PyLong_Check(v) || PyFloat_Check(v) || PyComplex_Check(v) ||
               PyAnySet_Check(v)))
         {

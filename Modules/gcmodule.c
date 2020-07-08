@@ -811,7 +811,7 @@ handle_weakrefs(PyGC_Head *unreachable, PyGC_Head *old)
              */
             _PyObject_ASSERT((PyObject *)wr, wr->wr_object == op);
             _PyWeakref_ClearRef(wr);
-            _PyObject_ASSERT((PyObject *)wr, wr->wr_object == Py_None);
+            _PyObject_ASSERT((PyObject *)wr, Py_IS_NONE(wr->wr_object));
             if (wr->wr_callback == NULL) {
                 /* no callback */
                 continue;
@@ -847,7 +847,7 @@ handle_weakrefs(PyGC_Head *unreachable, PyGC_Head *old)
              */
             if (gc_is_collecting(AS_GC(wr))) {
                 /* it should already have been cleared above */
-                assert(wr->wr_object == Py_None);
+                assert(Py_IS_NONE(wr->wr_object));
                 continue;
             }
 

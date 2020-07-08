@@ -3345,7 +3345,7 @@ _curses_setupterm_impl(PyObject *module, const char *term, int fd)
 
         sys_stdout = PySys_GetObject("stdout");
 
-        if (sys_stdout == NULL || sys_stdout == Py_None) {
+        if (sys_stdout == NULL || Py_IS_NONE(sys_stdout)) {
             PyErr_SetString(
                 PyCursesError,
                 "lost sys.stdout");

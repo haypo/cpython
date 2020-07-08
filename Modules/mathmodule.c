@@ -3236,7 +3236,7 @@ math_perm_impl(PyObject *module, PyObject *n, PyObject *k)
     int overflow, cmp;
     long long i, factors;
 
-    if (k == Py_None) {
+    if (Py_IS_NONE(k)) {
         return math_factorial(module, n);
     }
     n = PyNumber_Index(n);

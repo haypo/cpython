@@ -30,7 +30,7 @@ _opcode_stack_effect_impl(PyObject *module, int opcode, PyObject *oparg,
     int oparg_int = 0;
     int jump_int;
     if (HAS_ARG(opcode)) {
-        if (oparg == Py_None) {
+        if (Py_IS_NONE(oparg)) {
             PyErr_SetString(PyExc_ValueError,
                     "stack_effect: opcode requires oparg but oparg was not specified");
             return -1;
@@ -40,12 +40,12 @@ _opcode_stack_effect_impl(PyObject *module, int opcode, PyObject *oparg,
             return -1;
         }
     }
-    else if (oparg != Py_None) {
+    else if (!Py_IS_NONE(oparg)) {
         PyErr_SetString(PyExc_ValueError,
                 "stack_effect: opcode does not permit oparg but oparg was specified");
         return -1;
     }
-    if (jump == Py_None) {
+    if (Py_IS_NONE(jump)) {
         jump_int = -1;
     }
     else if (jump == Py_True) {

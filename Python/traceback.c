@@ -73,7 +73,7 @@ tb_new_impl(PyTypeObject *type, PyObject *tb_next, PyFrameObject *tb_frame,
             int tb_lasti, int tb_lineno)
 /*[clinic end generated code: output=fa077debd72d861a input=01cbe8ec8783fca7]*/
 {
-    if (tb_next == Py_None) {
+    if (Py_IS_NONE(tb_next)) {
         tb_next = NULL;
     } else if (!PyTraceBack_Check(tb_next)) {
         return PyErr_Format(PyExc_TypeError,
@@ -113,7 +113,7 @@ tb_next_set(PyTracebackObject *self, PyObject *new_next, void *Py_UNUSED(_))
 
     /* We accept None or a traceback object, and map None -> NULL (inverse of
        tb_next_get) */
-    if (new_next == Py_None) {
+    if (Py_IS_NONE(new_next)) {
         new_next = NULL;
     } else if (!PyTraceBack_Check(new_next)) {
         PyErr_Format(PyExc_TypeError,

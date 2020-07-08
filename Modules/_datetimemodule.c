@@ -896,7 +896,7 @@ new_datetime_ex2(int year, int month, int day, int hour, int minute,
                  int second, int usecond, PyObject *tzinfo, int fold, PyTypeObject *type)
 {
     PyDateTime_DateTime *self;
-    char aware = tzinfo != Py_None;
+    char aware = !Py_IS_NONE(tzinfo);
 
     if (check_date_args(year, month, day) < 0) {
         return NULL;
@@ -977,7 +977,7 @@ new_time_ex2(int hour, int minute, int second, int usecond,
              PyObject *tzinfo, int fold, PyTypeObject *type)
 {
     PyDateTime_Time *self;
-    char aware = tzinfo != Py_None;
+    char aware = !Py_IS_NONE(tzinfo);
 
     if (check_time_args(hour, minute, second, usecond, fold) < 0) {
         return NULL;
@@ -1121,7 +1121,7 @@ new_timezone(PyObject *offset, PyObject *name)
 static int
 check_tzinfo_subclass(PyObject *p)
 {
-    if (p == Py_None || PyTZInfo_Check(p))
+    if (Py_IS_NONE(p) || PyTZInfo_Check(p))
         return 0;
     PyErr_Format(PyExc_TypeError,
                  "tzinfo argument must be None or of a tzinfo subclass, "
@@ -1160,13 +1160,13 @@ call_tzinfo_method(PyObject *tzinfo, const char *name, PyObject *tzinfoarg)
     PyObject *offset;
 
     assert(tzinfo != NULL);
-    assert(PyTZInfo_Check(tzinfo) || tzinfo == Py_None);
+    assert(PyTZInfo_Check(tzinfo) || Py_IS_NONE(tzinfo));
     assert(tzinfoarg != NULL);
 
-    if (tzinfo == Py_None)
+    if (Py_IS_NONE(tzinfo))
         Py_RETURN_NONE;
     offset = PyObject_CallMethod(tzinfo, name, "O", tzinfoarg);
-    if (offset == Py_None || offset == NULL)
+    if (Py_IS_NONE(offset) || offset == NULL)
         return offset;
     if (PyDelta_Check(offset)) {
         if ((GET_TD_DAYS(offset) == -1 &&
@@ -1236,12 +1236,12 @@ call_tzname(PyObject *tzinfo, PyObject *tzinfoarg)
     assert(check_tzinfo_subclass(tzinfo) >= 0);
     assert(tzinfoarg != NULL);
 
-    if (tzinfo == Py_None)
+    if (Py_IS_NONE(tzinfo))
         Py_RETURN_NONE;
 
     result = _PyObject_CallMethodIdOneArg(tzinfo, &PyId_tzname, tzinfoarg);
 
-    if (result == NULL || result == Py_None)
+    if (result == NULL || Py_IS_NONE(result))
         return result;
 
     if (!PyUnicode_Check(result)) {
@@ -1267,7 +1267,7 @@ append_keyword_tzinfo(PyObject *repr, PyObject *tzinfo)
 
     assert(PyUnicode_Check(repr));
     assert(tzinfo);
-    if (tzinfo == Py_None)
+    if (Py_IS_NONE(tzinfo))
         return repr;
     /* Get rid of the trailing ')'. */
     assert(PyUnicode_READ_CHAR(repr, PyUnicode_GET_LENGTH(repr)-1) == ')');
@@ -1378,7 +1378,7 @@ format_utcoffset(char *buf, size_t buflen, const char *sep,
     offset = call_utcoffset(tzinfo, tzinfoarg);
     if (offset == NULL)
         return -1;
-    if (offset == Py_None) {
+    if (Py_IS_NONE(offset)) {
         Py_DECREF(offset);
         *buf = '\0';
         return 0;
@@ -1423,14 +1423,14 @@ make_Zreplacement(PyObject *object, PyObject *tzinfoarg)
 
     if (Zreplacement == NULL)
         return NULL;
-    if (tzinfo == Py_None || tzinfo == NULL)
+    if (Py_IS_NONE(tzinfo) || tzinfo == NULL)
         return Zreplacement;
 
     assert(tzinfoarg != NULL);
     temp = call_tzname(tzinfo, tzinfoarg);
     if (temp == NULL)
         goto Error;
-    if (temp == Py_None) {
+    if (Py_IS_NONE(temp)) {
         Py_DECREF(temp);
         return Zreplacement;
     }
@@ -1545,7 +1545,7 @@ wrap_strftime(PyObject *object, PyObject *format, PyObject *timetuple,
                 PyObject *tzinfo = get_tzinfo_member(object);
                 zreplacement = PyBytes_FromStringAndSize("", 0);
                 if (zreplacement == NULL) goto Done;
-                if (tzinfo != Py_None && tzinfo != NULL) {
+                if (!Py_IS_NONE(tzinfo) && tzinfo != NULL) {
                     assert(tzinfoarg != NULL);
                     if (format_utcoffset(buf,
                                          sizeof(buf),
@@ -3674,7 +3674,7 @@ tzinfo_fromutc(PyDateTime_TZInfo *self, PyObject *dt)
     off = datetime_utcoffset(dt, NULL);
     if (off == NULL)
         return NULL;
-    if (off == Py_None) {
+    if (Py_IS_NONE(off)) {
         PyErr_SetString(PyExc_ValueError, "fromutc: non-None "
                         "utcoffset() result required");
         goto Fail;
@@ -3683,7 +3683,7 @@ tzinfo_fromutc(PyDateTime_TZInfo *self, PyObject *dt)
     dst = datetime_dst(dt, NULL);
     if (dst == NULL)
         goto Fail;
-    if (dst == Py_None) {
+    if (Py_IS_NONE(dst)) {
         PyErr_SetString(PyExc_ValueError, "fromutc: non-None "
                         "dst() result required");
         goto Fail;
@@ -3700,7 +3700,7 @@ tzinfo_fromutc(PyDateTime_TZInfo *self, PyObject *dt)
     dst = call_dst(GET_DT_TZINFO(dt), result);
     if (dst == NULL)
         goto Fail;
-    if (dst == Py_None)
+    if (Py_IS_NONE(dst))
         goto Inconsistent;
     if (delta_bool((PyDateTime_Delta *)dst) != 0) {
         Py_SETREF(result, add_datetime_timedelta((PyDateTime_DateTime *)result,
@@ -3775,7 +3775,7 @@ tzinfo_reduce(PyObject *self, PyObject *Py_UNUSED(ignored))
         Py_INCREF(state);
     }
 
-    if (state == Py_None) {
+    if (Py_IS_NONE(state)) {
         Py_DECREF(state);
         return Py_BuildValue("(ON)", Py_TYPE(self), args);
     }
@@ -3896,7 +3896,7 @@ timezone_hash(PyDateTime_TimeZone *self)
 static int
 _timezone_check_argument(PyObject *dt, const char *meth)
 {
-    if (dt == Py_None || PyDateTime_Check(dt))
+    if (Py_IS_NONE(dt) || PyDateTime_Check(dt))
         return 0;
     PyErr_Format(PyExc_TypeError, "%s(dt) argument must be a datetime instance"
                  " or None, not %.200s", meth, Py_TYPE(dt)->tp_name);
@@ -4151,7 +4151,7 @@ static PyObject *
 time_from_pickle(PyTypeObject *type, PyObject *state, PyObject *tzinfo)
 {
     PyDateTime_Time *me;
-    char aware = (char)(tzinfo != Py_None);
+    char aware = (char)(!Py_IS_NONE(tzinfo));
 
     if (aware && check_tzinfo_subclass(tzinfo) < 0) {
         PyErr_SetString(PyExc_TypeError, "bad tzinfo state arg");
@@ -4360,7 +4360,7 @@ time_isoformat(PyDateTime_Time *self, PyObject *args, PyObject *kw)
                                       TIME_GET_SECOND(self), us);
     }
 
-    if (result == NULL || !HASTZINFO(self) || self->tzinfo == Py_None)
+    if (result == NULL || !HASTZINFO(self) || Py_IS_NONE(self->tzinfo))
         return result;
 
     /* We need to append the UTC offset. */
@@ -4443,7 +4443,7 @@ time_richcompare(PyObject *self, PyObject *other, int op)
         result = diff_to_bool(diff, op);
     }
     /* The hard case: both aware with different UTC offsets */
-    else if (offset1 != Py_None && offset2 != Py_None) {
+    else if (!Py_IS_NONE(offset1) && !Py_IS_NONE(offset2)) {
         int offsecs1, offsecs2;
         assert(offset1 != offset2); /* else last "if" handled it */
         offsecs1 = TIME_GET_HOUR(self) * 3600 +
@@ -4507,7 +4507,7 @@ time_hash(PyDateTime_Time *self)
             return -1;
 
         /* Reduce this to a hash of another object. */
-        if (offset == Py_None)
+        if (Py_IS_NONE(offset))
             self->hashcode = generic_hash(
                 (unsigned char *)self->data, _PyDateTime_TIME_DATASIZE);
         else {
@@ -4638,7 +4638,7 @@ time_getstate(PyDateTime_Time *self, int proto)
         if (proto > 3 && TIME_GET_FOLD(self))
             /* Set the first bit of the first byte */
             PyBytes_AS_STRING(basestate)[0] |= (1 << 7);
-        if (! HASTZINFO(self) || self->tzinfo == Py_None)
+        if (! HASTZINFO(self) || Py_IS_NONE(self->tzinfo))
             result = PyTuple_Pack(1, basestate);
         else
             result = PyTuple_Pack(2, basestate, self->tzinfo);
@@ -4817,7 +4817,7 @@ static PyObject *
 datetime_from_pickle(PyTypeObject *type, PyObject *state, PyObject *tzinfo)
 {
     PyDateTime_DateTime *me;
-    char aware = (char)(tzinfo != Py_None);
+    char aware = (char)(!Py_IS_NONE(tzinfo));
 
     if (aware && check_tzinfo_subclass(tzinfo) < 0) {
         PyErr_SetString(PyExc_TypeError, "bad tzinfo state arg");
@@ -4985,7 +4985,7 @@ datetime_from_timet_and_us(PyObject *cls, TM_FUNC f, time_t timet, int us,
     second = Py_MIN(59, tm.tm_sec);
 
     /* local timezone requires to compute fold */
-    if (tzinfo == Py_None && f == _PyTime_localtime
+    if (Py_IS_NONE(tzinfo) && f == _PyTime_localtime
     /* On Windows, passing a negative value to local results
      * in an OSError because localtime_s on Windows does
      * not support negative timestamps. Unfortunately this
@@ -5087,10 +5087,10 @@ datetime_datetime_now_impl(PyTypeObject *type, PyObject *tz)
         return NULL;
 
     self = datetime_best_possible((PyObject *)type,
-                                  tz == Py_None ? _PyTime_localtime :
+                                  Py_IS_NONE(tz) ? _PyTime_localtime :
                                   _PyTime_gmtime,
                                   tz);
-    if (self != NULL && tz != Py_None) {
+    if (self != NULL && !Py_IS_NONE(tz)) {
         /* Convert UTC to tzinfo's zone. */
         self = _PyObject_CallMethodId(tz, &PyId_fromutc, "N", self);
     }
@@ -5122,11 +5122,11 @@ datetime_fromtimestamp(PyObject *cls, PyObject *args, PyObject *kw)
         return NULL;
 
     self = datetime_from_timestamp(cls,
-                                   tzinfo == Py_None ? _PyTime_localtime :
+                                   Py_IS_NONE(tzinfo) ? _PyTime_localtime :
                                    _PyTime_gmtime,
                                    timestamp,
                                    tzinfo);
-    if (self != NULL && tzinfo != Py_None) {
+    if (self != NULL && !Py_IS_NONE(tzinfo)) {
         /* Convert UTC to tzinfo's zone. */
         self = _PyObject_CallMethodId(tzinfo, &PyId_fromutc, "N", self);
     }
@@ -5433,7 +5433,7 @@ datetime_subtract(PyObject *left, PyObject *right)
                     Py_DECREF(offset1);
                     return NULL;
                 }
-                if ((offset1 != Py_None) != (offset2 != Py_None)) {
+                if ((!Py_IS_NONE(offset1)) != (!Py_IS_NONE(offset2))) {
                     PyErr_SetString(PyExc_TypeError,
                                     "can't subtract offset-naive and "
                                     "offset-aware datetimes");
@@ -5720,7 +5720,7 @@ datetime_richcompare(PyObject *self, PyObject *other, int op)
         goto done;
     /* If they're both naive, or both aware and have the same offsets,
      * we get off cheap.  Note that if they're both naive, offset1 ==
-     * offset2 == Py_None at this point.
+     * Py_IS_NONE(offset2) at this point.
      */
     if ((offset1 == offset2) ||
         (PyDelta_Check(offset1) && PyDelta_Check(offset2) &&
@@ -5737,7 +5737,7 @@ datetime_richcompare(PyObject *self, PyObject *other, int op)
         }
         result = diff_to_bool(diff, op);
     }
-    else if (offset1 != Py_None && offset2 != Py_None) {
+    else if (!Py_IS_NONE(offset1) && !Py_IS_NONE(offset2)) {
         PyDateTime_Delta *delta;
 
         assert(offset1 != offset2); /* else last "if" handled it */
@@ -5807,7 +5807,7 @@ datetime_hash(PyDateTime_DateTime *self)
             return -1;
 
         /* Reduce this to a hash of another object. */
-        if (offset == Py_None)
+        if (Py_IS_NONE(offset))
             self->hashcode = generic_hash(
                 (unsigned char *)self->data, _PyDateTime_DATETIME_DATASIZE);
         else {
@@ -6009,7 +6009,7 @@ datetime_astimezone(PyDateTime_DateTime *self, PyObject *args, PyObject *kw)
     if (check_tzinfo_subclass(tzinfo) == -1)
         return NULL;
 
-    if (!HASTZINFO(self) || self->tzinfo == Py_None) {
+    if (!HASTZINFO(self) || Py_IS_NONE(self->tzinfo)) {
   naive:
         self_tzinfo = local_timezone_from_local(self);
         if (self_tzinfo == NULL)
@@ -6031,7 +6031,7 @@ datetime_astimezone(PyDateTime_DateTime *self, PyObject *args, PyObject *kw)
     Py_DECREF(self_tzinfo);
     if (offset == NULL)
         return NULL;
-    else if(offset == Py_None) {
+    else if (Py_IS_NONE(offset)) {
         Py_DECREF(offset);
         goto naive;
     }
@@ -6076,7 +6076,7 @@ datetime_astimezone(PyDateTime_DateTime *self, PyObject *args, PyObject *kw)
 
     /* Attach new tzinfo and let fromutc() do the rest. */
     temp = result->tzinfo;
-    if (tzinfo == Py_None) {
+    if (Py_IS_NONE(tzinfo)) {
         tzinfo = local_timezone(result);
         if (tzinfo == NULL) {
             Py_DECREF(result);
@@ -6101,14 +6101,14 @@ datetime_timetuple(PyDateTime_DateTime *self, PyObject *Py_UNUSED(ignored))
 {
     int dstflag = -1;
 
-    if (HASTZINFO(self) && self->tzinfo != Py_None) {
+    if (HASTZINFO(self) && !Py_IS_NONE(self->tzinfo)) {
         PyObject * dst;
 
         dst = call_dst(self->tzinfo, (PyObject *)self);
         if (dst == NULL)
             return NULL;
 
-        if (dst != Py_None)
+        if (!Py_IS_NONE(dst))
             dstflag = delta_bool((PyDateTime_Delta *)dst);
         Py_DECREF(dst);
     }
@@ -6176,7 +6176,7 @@ datetime_timestamp(PyDateTime_DateTime *self, PyObject *Py_UNUSED(ignored))
 {
     PyObject *result;
 
-    if (HASTZINFO(self) && self->tzinfo != Py_None) {
+    if (HASTZINFO(self) && !Py_IS_NONE(self->tzinfo)) {
         PyObject *delta;
         delta = datetime_subtract((PyObject *)self, PyDateTime_Epoch);
         if (delta == NULL)
@@ -6239,7 +6239,7 @@ datetime_utctimetuple(PyDateTime_DateTime *self, PyObject *Py_UNUSED(ignored))
     PyDateTime_DateTime *utcself;
 
     tzinfo = GET_DT_TZINFO(self);
-    if (tzinfo == Py_None) {
+    if (Py_IS_NONE(tzinfo)) {
         utcself = self;
         Py_INCREF(utcself);
     }
@@ -6248,7 +6248,7 @@ datetime_utctimetuple(PyDateTime_DateTime *self, PyObject *Py_UNUSED(ignored))
         offset = call_utcoffset(tzinfo, (PyObject *)self);
         if (offset == NULL)
             return NULL;
-        if (offset == Py_None) {
+        if (Py_IS_NONE(offset)) {
             Py_DECREF(offset);
             utcself = self;
             Py_INCREF(utcself);
@@ -6291,7 +6291,7 @@ datetime_getstate(PyDateTime_DateTime *self, int proto)
         if (proto > 3 && DATE_GET_FOLD(self))
             /* Set the first bit of the third byte */
             PyBytes_AS_STRING(basestate)[2] |= (1 << 7);
-        if (! HASTZINFO(self) || self->tzinfo == Py_None)
+        if (! HASTZINFO(self) || Py_IS_NONE(self->tzinfo))
             result = PyTuple_Pack(1, basestate);
         else
             result = PyTuple_Pack(2, basestate, self->tzinfo);

@@ -76,7 +76,7 @@ _PyErr_StackItem *
 _PyErr_GetTopmostException(PyThreadState *tstate)
 {
     _PyErr_StackItem *exc_info = tstate->exc_info;
-    while ((exc_info->exc_type == NULL || exc_info->exc_type == Py_None) &&
+    while ((exc_info->exc_type == NULL || Py_IS_NONE(exc_info->exc_type)) &&
            exc_info->previous_item != NULL)
     {
         exc_info = exc_info->previous_item;
@@ -87,7 +87,7 @@ _PyErr_GetTopmostException(PyThreadState *tstate)
 static PyObject*
 _PyErr_CreateException(PyObject *exception, PyObject *value)
 {
-    if (value == NULL || value == Py_None) {
+    if (value == NULL || Py_IS_NONE(value)) {
         return _PyObject_CallNoArg(exception);
     }
     else if (PyTuple_Check(value)) {
@@ -115,7 +115,7 @@ _PyErr_SetObject(PyThreadState *tstate, PyObject *exception, PyObject *value)
 
     Py_XINCREF(value);
     exc_value = _PyErr_GetTopmostException(tstate)->exc_value;
-    if (exc_value != NULL && exc_value != Py_None) {
+    if (exc_value != NULL && !Py_IS_NONE(exc_value)) {
         /* Implicit exception chaining */
         Py_INCREF(exc_value);
         if (value == NULL || !PyExceptionInstance_Check(value)) {
@@ -535,7 +535,7 @@ _PyErr_ChainStackItem(_PyErr_StackItem *exc_info)
     } else {
         exc_info_given = 1;
     }
-    if (exc_info->exc_type == NULL || exc_info->exc_type == Py_None) {
+    if (exc_info->exc_type == NULL || Py_IS_NONE(exc_info->exc_type)) {
         return;
     }
 
@@ -1247,8 +1247,8 @@ write_unraisable_exc_file(PyThreadState *tstate, PyObject *exc_type,
                           PyObject *exc_value, PyObject *exc_tb,
                           PyObject *err_msg, PyObject *obj, PyObject *file)
 {
-    if (obj != NULL && obj != Py_None) {
-        if (err_msg != NULL && err_msg != Py_None) {
+    if (obj != NULL && !Py_IS_NONE(obj)) {
+        if (err_msg != NULL && !Py_IS_NONE(err_msg)) {
             if (PyFile_WriteObject(err_msg, file, Py_PRINT_RAW) < 0) {
                 return -1;
             }
@@ -1272,7 +1272,7 @@ write_unraisable_exc_file(PyThreadState *tstate, PyObject *exc_type,
             return -1;
         }
     }
-    else if (err_msg != NULL && err_msg != Py_None) {
+    else if (err_msg != NULL && !Py_IS_NONE(err_msg)) {
         if (PyFile_WriteObject(err_msg, file, Py_PRINT_RAW) < 0) {
             return -1;
         }
@@ -1281,14 +1281,14 @@ write_unraisable_exc_file(PyThreadState *tstate, PyObject *exc_type,
         }
     }
 
-    if (exc_tb != NULL && exc_tb != Py_None) {
+    if (exc_tb != NULL && !Py_IS_NONE(exc_tb)) {
         if (PyTraceBack_Print(exc_tb, file) < 0) {
             /* continue even if writing the traceback failed */
             _PyErr_Clear(tstate);
         }
     }
 
-    if (exc_type == NULL || exc_type == Py_None) {
+    if (exc_type == NULL || Py_IS_NONE(exc_type)) {
         return -1;
     }
 
@@ -1335,7 +1335,7 @@ write_unraisable_exc_file(PyThreadState *tstate, PyObject *exc_type,
         }
     }
 
-    if (exc_value && exc_value != Py_None) {
+    if (exc_value && !Py_IS_NONE(exc_value)) {
         if (PyFile_WriteString(": ", file) < 0) {
             return -1;
         }
@@ -1368,7 +1368,7 @@ write_unraisable_exc(PyThreadState *tstate, PyObject *exc_type,
                      PyObject *obj)
 {
     PyObject *file = _PySys_GetObjectId(&PyId_stderr);
-    if (file == NULL || file == Py_None) {
+    if (file == NULL || Py_IS_NONE(file)) {
         return 0;
     }
 
@@ -1449,7 +1449,7 @@ _PyErr_WriteUnraisableMsg(const char *err_msg_str, PyObject *obj)
 
     _PyErr_NormalizeException(tstate, &exc_type, &exc_value, &exc_tb);
 
-    if (exc_tb != NULL && exc_tb != Py_None && PyTraceBack_Check(exc_tb)) {
+    if (exc_tb != NULL && !Py_IS_NONE(exc_tb) && PyTraceBack_Check(exc_tb)) {
         if (PyException_SetTraceback(exc_value, exc_tb) < 0) {
             _PyErr_Clear(tstate);
         }
@@ -1484,7 +1484,7 @@ _PyErr_WriteUnraisableMsg(const char *err_msg_str, PyObject *obj)
         goto error;
     }
 
-    if (hook == Py_None) {
+    if (Py_IS_NONE(hook)) {
         Py_DECREF(hook_args);
         goto default_hook;
     }

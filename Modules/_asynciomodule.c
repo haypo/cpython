@@ -261,7 +261,7 @@ get_running_loop(PyObject **loop)
     assert(Py_IS_TYPE(rl, &PyRunningLoopHolder_Type));
     PyObject *running_loop = ((PyRunningLoopHolder *)rl)->rl_loop;
 
-    if (running_loop == Py_None) {
+    if (Py_IS_NONE(running_loop)) {
         goto not_found;
     }
 
@@ -494,7 +494,7 @@ future_init(FutureObj *fut, PyObject *loop)
     fut->fut_log_tb = 0;
     fut->fut_blocking = 0;
 
-    if (loop == Py_None) {
+    if (Py_IS_NONE(loop)) {
         loop = get_event_loop();
         if (loop == NULL) {
             return -1;
@@ -607,7 +607,7 @@ static PyObject *
 create_cancelled_error(PyObject *msg)
 {
     PyObject *exc;
-    if (msg == NULL || msg == Py_None) {
+    if (msg == NULL || Py_IS_NONE(msg)) {
         exc = PyObject_CallNoArgs(asyncio_CancelledError);
     } else {
         exc = PyObject_CallOneArg(asyncio_CancelledError, msg);
@@ -1652,10 +1652,10 @@ FutureIter_throw(futureiterobject *self, PyObject *args)
     if (!PyArg_ParseTuple(args, "O|OO", &type, &val, &tb))
         return NULL;
 
-    if (val == Py_None) {
+    if (Py_IS_NONE(val)) {
         val = NULL;
     }
-    if (tb == Py_None) {
+    if (Py_IS_NONE(tb)) {
         tb = NULL;
     } else if (tb != NULL && !PyTraceBack_Check(tb)) {
         PyErr_SetString(PyExc_TypeError, "throw() third argument must be a traceback");
@@ -2087,7 +2087,7 @@ _asyncio_Task___init___impl(TaskObj *self, PyObject *coro, PyObject *loop,
     Py_INCREF(coro);
     Py_XSETREF(self->task_coro, coro);
 
-    if (name == Py_None) {
+    if (Py_IS_NONE(name)) {
         name = PyUnicode_FromFormat("Task-%" PRIu64, ++task_name_counter);
     } else if (!PyUnicode_CheckExact(name)) {
         name = PyObject_Str(name);
@@ -2653,7 +2653,7 @@ task_step_impl(TaskObj *task, PyObject *exc)
     }
 
     if (task->task_must_cancel) {
-        assert(exc != Py_None);
+        assert(!Py_IS_NONE(exc));
 
         if (exc) {
             /* Check if exc is a CancelledError */
@@ -2769,7 +2769,7 @@ task_step_impl(TaskObj *task, PyObject *exc)
             Py_XDECREF(ev);
             goto fail;
         }
-        assert(o == Py_None);
+        assert(Py_IS_NONE(o));
         Py_DECREF(o);
 
         if (PyErr_GivenExceptionMatches(et, PyExc_KeyboardInterrupt) ||
@@ -2847,7 +2847,7 @@ task_step_impl(TaskObj *task, PyObject *exc)
     }
 
     /* Check if `result` is None */
-    if (result == Py_None) {
+    if (Py_IS_NONE(result)) {
         /* Bare yield relinquishes control for one event loop iteration. */
         if (task_call_step_soon(task, NULL)) {
             goto fail;
@@ -2859,7 +2859,7 @@ task_step_impl(TaskObj *task, PyObject *exc)
     if (_PyObject_LookupAttrId(result, &PyId__asyncio_future_blocking, &o) < 0) {
         goto fail;
     }
-    if (o != NULL && o != Py_None) {
+    if (o != NULL && !Py_IS_NONE(o)) {
         /* `result` is a Future-compatible object */
         PyObject *wrapper;
         PyObject *res;

@@ -1213,7 +1213,7 @@ xmlparse_handler_setter(xmlparseobject *self, PyObject *v, struct HandlerInfo *h
     }
 
     xmlhandler c_handler = NULL;
-    if (v == Py_None) {
+    if (Py_IS_NONE(v)) {
         /* If this is the character data handler, and a character
            data handler is already active, we need to be more
            careful.  What we can safely do is replace the existing
@@ -1528,7 +1528,7 @@ pyexpat_ParserCreate_impl(PyObject *module, const char *encoding,
     }
     /* Explicitly passing None means no interning is desired.
        Not passing anything means that a new dictionary is used. */
-    if (intern == Py_None)
+    if (Py_IS_NONE(intern))
         intern = NULL;
     else if (intern == NULL) {
         intern = PyDict_New();

@@ -563,7 +563,7 @@ filter_next(filterobject *lz)
     PyObject *it = lz->it;
     long ok;
     PyObject *(*iternext)(PyObject *);
-    int checktrue = lz->func == Py_None || lz->func == (PyObject *)&PyBool_Type;
+    int checktrue = Py_IS_NONE(lz->func) || lz->func == (PyObject *)&PyBool_Type;
 
     iternext = *Py_TYPE(it)->tp_iternext;
     for (;;) {
@@ -896,25 +896,25 @@ builtin_eval_impl(PyObject *module, PyObject *source, PyObject *globals,
     PyObject *result, *source_copy;
     const char *str;
 
-    if (locals != Py_None && !PyMapping_Check(locals)) {
+    if (!Py_IS_NONE(locals) && !PyMapping_Check(locals)) {
         PyErr_SetString(PyExc_TypeError, "locals must be a mapping");
         return NULL;
     }
-    if (globals != Py_None && !PyDict_Check(globals)) {
+    if (!Py_IS_NONE(globals) && !PyDict_Check(globals)) {
         PyErr_SetString(PyExc_TypeError, PyMapping_Check(globals) ?
             "globals must be a real dict; try eval(expr, {}, mapping)"
             : "globals must be a dict");
         return NULL;
     }
-    if (globals == Py_None) {
+    if (Py_IS_NONE(globals)) {
         globals = PyEval_GetGlobals();
-        if (locals == Py_None) {
+        if (Py_IS_NONE(locals)) {
             locals = PyEval_GetLocals();
             if (locals == NULL)
                 return NULL;
         }
     }
-    else if (locals == Py_None)
+    else if (Py_IS_NONE(locals))
         locals = globals;
 
     if (globals == NULL || locals == NULL) {
@@ -985,9 +985,9 @@ builtin_exec_impl(PyObject *module, PyObject *source, PyObject *globals,
 {
     PyObject *v;
 
-    if (globals == Py_None) {
+    if (Py_IS_NONE(globals)) {
         globals = PyEval_GetGlobals();
-        if (locals == Py_None) {
+        if (Py_IS_NONE(locals)) {
             locals = PyEval_GetLocals();
             if (locals == NULL)
                 return NULL;
@@ -998,7 +998,7 @@ builtin_exec_impl(PyObject *module, PyObject *source, PyObject *globals,
             return NULL;
         }
     }
-    else if (locals == Py_None)
+    else if (Py_IS_NONE(locals))
         locals = globals;
 
     if (!PyDict_Check(globals)) {
@@ -1623,7 +1623,7 @@ min_max(PyObject *args, PyObject *kwds, int op)
         return NULL;
     }
 
-    if (keyfunc == Py_None) {
+    if (Py_IS_NONE(keyfunc)) {
         keyfunc = NULL;
     }
 
@@ -1839,7 +1839,7 @@ builtin_print(PyObject *self, PyObject *const *args, Py_ssize_t nargs, PyObject 
         return NULL;
     }
 
-    if (file == NULL || file == Py_None) {
+    if (file == NULL || Py_IS_NONE(file)) {
         file = _PySys_GetObjectId(&PyId_stdout);
         if (file == NULL) {
             PyErr_SetString(PyExc_RuntimeError, "lost sys.stdout");
@@ -1847,11 +1847,11 @@ builtin_print(PyObject *self, PyObject *const *args, Py_ssize_t nargs, PyObject 
         }
 
         /* sys.stdout may be None when FILE* stdout isn't connected */
-        if (file == Py_None)
+        if (Py_IS_NONE(file))
             Py_RETURN_NONE;
     }
 
-    if (sep == Py_None) {
+    if (Py_IS_NONE(sep)) {
         sep = NULL;
     }
     else if (sep && !PyUnicode_Check(sep)) {
@@ -1860,7 +1860,7 @@ builtin_print(PyObject *self, PyObject *const *args, Py_ssize_t nargs, PyObject 
                      Py_TYPE(sep)->tp_name);
         return NULL;
     }
-    if (end == Py_None) {
+    if (Py_IS_NONE(end)) {
         end = NULL;
     }
     else if (end && !PyUnicode_Check(end)) {
@@ -1940,17 +1940,17 @@ builtin_input_impl(PyObject *module, PyObject *prompt)
     int tty;
 
     /* Check that stdin/out/err are intact */
-    if (fin == NULL || fin == Py_None) {
+    if (fin == NULL || Py_IS_NONE(fin)) {
         PyErr_SetString(PyExc_RuntimeError,
                         "input(): lost sys.stdin");
         return NULL;
     }
-    if (fout == NULL || fout == Py_None) {
+    if (fout == NULL || Py_IS_NONE(fout)) {
         PyErr_SetString(PyExc_RuntimeError,
                         "input(): lost sys.stdout");
         return NULL;
     }
-    if (ferr == NULL || ferr == Py_None) {
+    if (ferr == NULL || Py_IS_NONE(ferr)) {
         PyErr_SetString(PyExc_RuntimeError,
                         "input(): lost sys.stderr");
         return NULL;
@@ -2176,7 +2176,7 @@ builtin_round_impl(PyObject *module, PyObject *number, PyObject *ndigits)
         return NULL;
     }
 
-    if (ndigits == Py_None)
+    if (Py_IS_NONE(ndigits))
         result = _PyObject_CallNoArg(round);
     else
         result = PyObject_CallOneArg(round, ndigits);

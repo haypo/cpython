@@ -151,7 +151,7 @@ PyObject *_PyCodec_Lookup(const char *encoding)
         result = PyObject_CallOneArg(func, v);
         if (result == NULL)
             goto onError;
-        if (result == Py_None) {
+        if (Py_IS_NONE(result)) {
             Py_DECREF(result);
             continue;
         }

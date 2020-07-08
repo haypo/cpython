@@ -600,7 +600,7 @@ _PyIO_get_locale_module(_PyIO_State *state)
     if (state->locale_module != NULL) {
         assert(PyWeakref_CheckRef(state->locale_module));
         mod = PyWeakref_GET_OBJECT(state->locale_module);
-        if (mod != Py_None) {
+        if (!Py_IS_NONE(mod)) {
             Py_INCREF(mod);
             return mod;
         }

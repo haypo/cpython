@@ -95,7 +95,7 @@ _multiprocessing_SemLock_acquire_impl(SemLockObject *self, int blocking,
     /* calculate timeout */
     if (!blocking) {
         full_msecs = 0;
-    } else if (timeout_obj == Py_None) {
+    } else if (Py_IS_NONE(timeout_obj)) {
         full_msecs = INFINITE;
     } else {
         timeout = PyFloat_AsDouble(timeout_obj);
@@ -312,7 +312,7 @@ _multiprocessing_SemLock_acquire_impl(SemLockObject *self, int blocking,
         Py_RETURN_TRUE;
     }
 
-    int use_deadline = (timeout_obj != Py_None);
+    int use_deadline = (!Py_IS_NONE(timeout_obj));
     if (use_deadline) {
         double timeout = PyFloat_AsDouble(timeout_obj);
         if (PyErr_Occurred()) {

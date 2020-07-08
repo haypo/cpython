@@ -1267,26 +1267,26 @@ context_init(PyObject *self, PyObject *args, PyObject *kwds)
         return -1;
     }
 
-    if (prec != Py_None && context_setprec(self, prec, NULL) < 0) {
+    if (!Py_IS_NONE(prec) && context_setprec(self, prec, NULL) < 0) {
         return -1;
     }
-    if (rounding != Py_None && context_setround(self, rounding, NULL) < 0) {
+    if (!Py_IS_NONE(rounding) && context_setround(self, rounding, NULL) < 0) {
         return -1;
     }
-    if (emin != Py_None && context_setemin(self, emin, NULL) < 0) {
+    if (!Py_IS_NONE(emin) && context_setemin(self, emin, NULL) < 0) {
         return -1;
     }
-    if (emax != Py_None && context_setemax(self, emax, NULL) < 0) {
+    if (!Py_IS_NONE(emax) && context_setemax(self, emax, NULL) < 0) {
         return -1;
     }
-    if (capitals != Py_None && context_setcapitals(self, capitals, NULL) < 0) {
+    if (!Py_IS_NONE(capitals) && context_setcapitals(self, capitals, NULL) < 0) {
         return -1;
     }
-    if (clamp != Py_None && context_setclamp(self, clamp, NULL) < 0) {
+    if (!Py_IS_NONE(clamp) && context_setclamp(self, clamp, NULL) < 0) {
        return -1;
     }
 
-    if (traps != Py_None) {
+    if (!Py_IS_NONE(traps)) {
         if (PyList_Check(traps)) {
             ret = context_settraps_list(self, traps);
         }
@@ -1302,7 +1302,7 @@ context_init(PyObject *self, PyObject *args, PyObject *kwds)
             return ret;
         }
     }
-    if (status != Py_None) {
+    if (!Py_IS_NONE(status)) {
         if (PyList_Check(status)) {
             ret = context_setstatus_list(self, status);
         }
@@ -1488,7 +1488,7 @@ static PyGetSetDef context_getsets [] =
     }
 
 #define CONTEXT_CHECK_VA(obj) \
-    if (obj == Py_None) {                           \
+    if (Py_IS_NONE(obj)) {                           \
         CURRENT_CONTEXT(obj);                       \
     }                                               \
     else if (!PyDecContext_Check(obj)) {            \
@@ -1733,7 +1733,7 @@ ctxmanager_new(PyTypeObject *type UNUSED, PyObject *args, PyObject *kwds)
     if (!PyArg_ParseTupleAndKeywords(args, kwds, "|O", kwlist, &local)) {
         return NULL;
     }
-    if (local == Py_None) {
+    if (Py_IS_NONE(local)) {
         local = global;
     }
     else if (!PyDecContext_Check(local)) {
@@ -3525,7 +3525,7 @@ PyDec_ToIntegralValue(PyObject *dec, PyObject *args, PyObject *kwds)
     CONTEXT_CHECK_VA(context);
 
     workctx = *CTX(context);
-    if (rounding != Py_None) {
+    if (!Py_IS_NONE(rounding)) {
         int round = getround(rounding);
         if (round < 0) {
             return NULL;
@@ -3566,7 +3566,7 @@ PyDec_ToIntegralExact(PyObject *dec, PyObject *args, PyObject *kwds)
     CONTEXT_CHECK_VA(context);
 
     workctx = *CTX(context);
-    if (rounding != Py_None) {
+    if (!Py_IS_NONE(rounding)) {
         int round = getround(rounding);
         if (round < 0) {
             return NULL;
@@ -4067,7 +4067,7 @@ nm_mpd_qpow(PyObject *base, PyObject *exp, PyObject *mod)
     CURRENT_CONTEXT(context);
     CONVERT_BINOP(&a, &b, base, exp, context);
 
-    if (mod != Py_None) {
+    if (!Py_IS_NONE(mod)) {
         if (!convert_op(NOT_IMPL, &c, mod, context)) {
             Py_DECREF(a);
             Py_DECREF(b);
@@ -4364,7 +4364,7 @@ dec_mpd_qquantize(PyObject *v, PyObject *args, PyObject *kwds)
     CONTEXT_CHECK_VA(context);
 
     workctx = *CTX(context);
-    if (rounding != Py_None) {
+    if (!Py_IS_NONE(rounding)) {
         int round = getround(rounding);
         if (round < 0) {
             return NULL;
@@ -5128,7 +5128,7 @@ ctx_mpd_qpow(PyObject *context, PyObject *args, PyObject *kwds)
 
     CONVERT_BINOP_RAISE(&a, &b, base, exp, context);
 
-    if (mod != Py_None) {
+    if (!Py_IS_NONE(mod)) {
         if (!convert_op(TYPE_ERR, &c, mod, context)) {
             Py_DECREF(a);
             Py_DECREF(b);

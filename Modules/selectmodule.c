@@ -286,7 +286,7 @@ select_select_impl(PyObject *module, PyObject *rlist, PyObject *wlist,
     int n;
     _PyTime_t timeout, deadline = 0;
 
-    if (timeout_obj == Py_None)
+    if (Py_IS_NONE(timeout_obj))
         tvp = (struct timeval *)NULL;
     else {
         if (_PyTime_FromSecondsObject(&timeout, timeout_obj,
@@ -598,7 +598,7 @@ select_poll_poll_impl(pollObject *self, PyObject *timeout_obj)
     _PyTime_t timeout = -1, ms = -1, deadline = 0;
     int async_err = 0;
 
-    if (timeout_obj != Py_None) {
+    if (!Py_IS_NONE(timeout_obj)) {
         if (_PyTime_FromMillisecondsObject(&timeout, timeout_obj,
                                            _PyTime_ROUND_TIMEOUT) < 0) {
             if (PyErr_ExceptionMatches(PyExc_TypeError)) {
@@ -933,7 +933,7 @@ select_devpoll_poll_impl(devpollObject *self, PyObject *timeout_obj)
         return devpoll_err_closed();
 
     /* Check values for timeout */
-    if (timeout_obj == Py_None) {
+    if (Py_IS_NONE(timeout_obj)) {
         timeout = -1;
         ms = -1;
     }
@@ -1554,7 +1554,7 @@ select_epoll_poll_impl(pyEpoll_Object *self, PyObject *timeout_obj,
     if (self->epfd < 0)
         return pyepoll_err_closed();
 
-    if (timeout_obj != Py_None) {
+    if (!Py_IS_NONE(timeout_obj)) {
         /* epoll_wait() has a resolution of 1 millisecond, round towards
            infinity to wait at least timeout seconds. */
         if (_PyTime_FromSecondsObject(&timeout, timeout_obj,
@@ -2140,7 +2140,7 @@ select_kqueue_control_impl(kqueue_queue_Object *self, PyObject *changelist,
         return NULL;
     }
 
-    if (otimeout == Py_None) {
+    if (Py_IS_NONE(otimeout)) {
         ptimeoutspec = NULL;
     }
     else {
@@ -2164,7 +2164,7 @@ select_kqueue_control_impl(kqueue_queue_Object *self, PyObject *changelist,
         ptimeoutspec = &timeoutspec;
     }
 
-    if (changelist != Py_None) {
+    if (!Py_IS_NONE(changelist)) {
         seq = PySequence_Fast(changelist, "changelist is not iterable");
         if (seq == NULL) {
             return NULL;

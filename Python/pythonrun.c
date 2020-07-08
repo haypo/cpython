@@ -163,7 +163,7 @@ PyRun_InteractiveOneObjectEx(FILE *fp, PyObject *filename,
     if (fp == stdin) {
         /* Fetch encoding from sys.stdin if possible. */
         v = _PySys_GetObjectId(&PyId_stdin);
-        if (v && v != Py_None) {
+        if (v && !Py_IS_NONE(v)) {
             oenc = _PyObject_GetAttrId(v, &PyId_encoding);
             if (oenc)
                 enc = PyUnicode_AsUTF8(oenc);
@@ -458,7 +458,7 @@ parse_syntax_error(PyObject *err, PyObject **message, PyObject **filename,
     v = _PyObject_GetAttrId(err, &PyId_filename);
     if (!v)
         goto finally;
-    if (v == Py_None) {
+    if (Py_IS_NONE(v)) {
         Py_DECREF(v);
         *filename = _PyUnicode_FromId(&PyId_string);
         if (*filename == NULL)
@@ -481,7 +481,7 @@ parse_syntax_error(PyObject *err, PyObject **message, PyObject **filename,
     v = _PyObject_GetAttrId(err, &PyId_offset);
     if (!v)
         goto finally;
-    if (v == Py_None) {
+    if (Py_IS_NONE(v)) {
         *offset = -1;
         Py_DECREF(v);
     } else {
@@ -495,7 +495,7 @@ parse_syntax_error(PyObject *err, PyObject **message, PyObject **filename,
     v = _PyObject_GetAttrId(err, &PyId_text);
     if (!v)
         goto finally;
-    if (v == Py_None) {
+    if (Py_IS_NONE(v)) {
         Py_DECREF(v);
         *text = NULL;
     }
@@ -596,7 +596,7 @@ _Py_HandleSystemExit(int *exitcode_p)
     fflush(stdout);
 
     int exitcode = 0;
-    if (value == NULL || value == Py_None) {
+    if (value == NULL || Py_IS_NONE(value)) {
         goto done;
     }
 
@@ -607,7 +607,7 @@ _Py_HandleSystemExit(int *exitcode_p)
         if (code) {
             Py_DECREF(value);
             value = code;
-            if (value == Py_None)
+            if (Py_IS_NONE(value))
                 goto done;
         }
         /* If we failed to dig out the 'code' attribute,
@@ -624,7 +624,7 @@ _Py_HandleSystemExit(int *exitcode_p)
          * details.
          */
         PyErr_Clear();
-        if (sys_stderr != NULL && sys_stderr != Py_None) {
+        if (sys_stderr != NULL && !Py_IS_NONE(sys_stderr)) {
             PyFile_WriteObject(value, sys_stderr, Py_PRINT_RAW);
         } else {
             PyObject_Print(value, stderr, Py_PRINT_RAW);
@@ -786,7 +786,7 @@ print_exception(PyObject *f, PyObject *value)
     fflush(stdout);
     type = (PyObject *) Py_TYPE(value);
     tb = PyException_GetTraceback(value);
-    if (tb && tb != Py_None)
+    if (tb && !Py_IS_NONE(tb))
         err = PyTraceBack_Print(tb, f);
     if (err == 0 &&
         _PyObject_HasAttrId(value, &PyId_print_file_and_line))
@@ -857,7 +857,7 @@ print_exception(PyObject *f, PyObject *value)
                       err = PyFile_WriteString(className, f);
         }
     }
-    if (err == 0 && (value != Py_None)) {
+    if (err == 0 && (!Py_IS_NONE(value))) {
         PyObject *s = PyObject_Str(value);
         /* only print colon if the str() of the
            object is not the empty string
@@ -958,7 +958,7 @@ print_exception_recursive(PyObject *f, PyObject *value, PyObject *seen)
 void
 _PyErr_Display(PyObject *file, PyObject *exception, PyObject *value, PyObject *tb)
 {
-    assert(file != NULL && file != Py_None);
+    assert(file != NULL && !Py_IS_NONE(file));
 
     PyObject *seen;
     if (PyExceptionInstance_Check(value)
@@ -1002,7 +1002,7 @@ PyErr_Display(PyObject *exception, PyObject *value, PyObject *tb)
         fprintf(stderr, "lost sys.stderr\n");
         return;
     }
-    if (file == Py_None) {
+    if (Py_IS_NONE(file)) {
         return;
     }
 

@@ -86,7 +86,7 @@ PrintError(const char *msg, ...)
     va_start(marker, msg);
     PyOS_vsnprintf(buf, sizeof(buf), msg, marker);
     va_end(marker);
-    if (f != NULL && f != Py_None)
+    if (f != NULL && !Py_IS_NONE(f))
         PyFile_WriteString(buf, f);
     PyErr_Print();
 }
@@ -279,7 +279,7 @@ static void _CallPythonObject(void *mem,
                                       "of ctypes callback function",
                                       callable);
         }
-        else if (keep == Py_None) {
+        else if (Py_IS_NONE(keep)) {
             /* Nothing to keep */
             Py_DECREF(keep);
         }
@@ -380,7 +380,7 @@ CThunkObject *_ctypes_alloc_callback(PyObject *callable,
 
     Py_INCREF(restype);
     p->restype = restype;
-    if (restype == Py_None) {
+    if (Py_IS_NONE(restype)) {
         p->setfunc = NULL;
         p->ffi_restype = &ffi_type_void;
     } else {

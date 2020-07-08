@@ -317,7 +317,7 @@ _PyIncrementalNewlineDecoder_decode(PyObject *myself,
     }
 
     /* decode input (with the eventual \r from a previous pass) */
-    if (self->decoder != Py_None) {
+    if (!Py_IS_NONE(self->decoder)) {
         output = PyObject_CallMethodObjArgs(self->decoder,
             _PyIO_str_decode, input, final ? Py_True : Py_False, NULL);
     }
@@ -528,7 +528,7 @@ _io_IncrementalNewlineDecoder_getstate_impl(nldecoder_object *self)
     PyObject *buffer;
     unsigned long long flag;
 
-    if (self->decoder != Py_None) {
+    if (!Py_IS_NONE(self->decoder)) {
         PyObject *state = PyObject_CallMethodNoArgs(self->decoder,
            _PyIO_str_getstate);
         if (state == NULL)
@@ -585,7 +585,7 @@ _io_IncrementalNewlineDecoder_setstate(nldecoder_object *self,
     self->pendingcr = (int) (flag & 1);
     flag >>= 1;
 
-    if (self->decoder != Py_None)
+    if (!Py_IS_NONE(self->decoder))
         return _PyObject_CallMethodId(self->decoder,
                                       &PyId_setstate, "((OK))", buffer, flag);
     else
@@ -602,7 +602,7 @@ _io_IncrementalNewlineDecoder_reset_impl(nldecoder_object *self)
 {
     self->seennl = 0;
     self->pendingcr = 0;
-    if (self->decoder != Py_None)
+    if (!Py_IS_NONE(self->decoder))
         return PyObject_CallMethodNoArgs(self->decoder, _PyIO_str_reset);
     else
         Py_RETURN_NONE;
@@ -993,7 +993,7 @@ _textiowrapper_fix_encoder_state(textio *self)
 static int
 io_check_errors(PyObject *errors)
 {
-    assert(errors != NULL && errors != Py_None);
+    assert(errors != NULL && !Py_IS_NONE(errors));
 
     PyInterpreterState *interp = _PyInterpreterState_GET();
 #ifndef Py_DEBUG
@@ -1084,7 +1084,7 @@ _io_TextIOWrapper___init___impl(textio *self, PyObject *buffer,
     self->ok = 0;
     self->detached = 0;
 
-    if (errors == Py_None) {
+    if (Py_IS_NONE(errors)) {
         errors = _PyUnicode_FromId(&PyId_strict); /* borrowed */
         if (errors == NULL) {
             return -1;
@@ -1279,7 +1279,7 @@ static int
 convert_optional_bool(PyObject *obj, int default_value)
 {
     long v;
-    if (obj == Py_None) {
+    if (Py_IS_NONE(obj)) {
         v = default_value;
     }
     else {
@@ -1295,17 +1295,17 @@ textiowrapper_change_encoding(textio *self, PyObject *encoding,
                               PyObject *errors, int newline_changed)
 {
     /* Use existing settings where new settings are not specified */
-    if (encoding == Py_None && errors == Py_None && !newline_changed) {
+    if (Py_IS_NONE(encoding) && Py_IS_NONE(errors) && !newline_changed) {
         return 0;  // no change
     }
 
-    if (encoding == Py_None) {
+    if (Py_IS_NONE(encoding)) {
         encoding = self->encoding;
-        if (errors == Py_None) {
+        if (Py_IS_NONE(errors)) {
             errors = self->errors;
         }
     }
-    else if (errors == Py_None) {
+    else if (Py_IS_NONE(errors)) {
         errors = _PyUnicode_FromId(&PyId_strict);
         if (errors == NULL) {
             return -1;
@@ -1366,14 +1366,14 @@ _io_TextIOWrapper_reconfigure_impl(textio *self, PyObject *encoding,
 
     /* Check if something is in the read buffer */
     if (self->decoded_chars != NULL) {
-        if (encoding != Py_None || errors != Py_None || newline_obj != NULL) {
+        if (!Py_IS_NONE(encoding) || !Py_IS_NONE(errors) || newline_obj != NULL) {
             _unsupported("It is not possible to set the encoding or newline "
                          "of stream after the first read");
             return NULL;
         }
     }
 
-    if (newline_obj != NULL && newline_obj != Py_None) {
+    if (newline_obj != NULL && !Py_IS_NONE(newline_obj)) {
         newline = PyUnicode_AsUTF8(newline_obj);
         if (newline == NULL || validate_newline(newline) < 0) {
             return NULL;

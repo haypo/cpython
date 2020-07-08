@@ -4126,7 +4126,7 @@ long_pow(PyObject *v, PyObject *w, PyObject *x)
         c = (PyLongObject *)x;
         Py_INCREF(x);
     }
-    else if (x == Py_None)
+    else if (Py_IS_NONE(x))
         c = NULL;
     else {
         Py_DECREF(a);

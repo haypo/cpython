@@ -76,7 +76,7 @@ ga_repr_item(_PyUnicodeWriter *writer, PyObject *p)
     if (_PyObject_LookupAttrId(p, &PyId___module__, &module) < 0) {
         goto done;
     }
-    if (module == NULL || module == Py_None) {
+    if (module == NULL || Py_IS_NONE(module)) {
         goto use_repr;
     }
 

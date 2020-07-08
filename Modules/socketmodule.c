@@ -2830,7 +2830,7 @@ socket_parse_timeout(_PyTime_t *timeout, PyObject *timeout_obj)
 #endif
     int overflow = 0;
 
-    if (timeout_obj == Py_None) {
+    if (Py_IS_NONE(timeout_obj)) {
         *timeout = _PyTime_FromSeconds(-1);
         return 0;
     }
@@ -4445,7 +4445,7 @@ sock_sendmsg(PySocketSockObject *s, PyObject *args)
     memset(&msg, 0, sizeof(msg));
 
     /* Parse destination address. */
-    if (addr_arg != NULL && addr_arg != Py_None) {
+    if (addr_arg != NULL && !Py_IS_NONE(addr_arg)) {
         if (!getsockaddrarg(s, addr_arg, &addrbuf, &addrlen,
                             "sendmsg"))
         {
@@ -5111,7 +5111,7 @@ sock_initobj(PyObject *self, PyObject *args, PyObject *kwds)
 
 #ifdef MS_WINDOWS
     /* In this case, we don't use the family, type and proto args */
-    if (fdobj == NULL || fdobj == Py_None)
+    if (fdobj == NULL || Py_IS_NONE(fdobj))
 #endif
     {
         if (PySys_Audit("socket.__new__", "Oiii",
@@ -5120,7 +5120,7 @@ sock_initobj(PyObject *self, PyObject *args, PyObject *kwds)
         }
     }
 
-    if (fdobj != NULL && fdobj != Py_None) {
+    if (fdobj != NULL && !Py_IS_NONE(fdobj)) {
 #ifdef MS_WINDOWS
         /* recreate a socket that was duplicated */
         if (PyBytes_Check(fdobj)) {
@@ -6467,7 +6467,7 @@ socket_getaddrinfo(PyObject *self, PyObject *args, PyObject* kwargs)
                           &protocol, &flags)) {
         return NULL;
     }
-    if (hobj == Py_None) {
+    if (Py_IS_NONE(hobj)) {
         hptr = NULL;
     } else if (PyUnicode_Check(hobj)) {
         idna = PyUnicode_AsEncodedString(hobj, "idna", NULL);
@@ -6494,7 +6494,7 @@ socket_getaddrinfo(PyObject *self, PyObject *args, PyObject* kwargs)
             goto err;
     } else if (PyBytes_Check(pobj)) {
         pptr = PyBytes_AS_STRING(pobj);
-    } else if (pobj == Py_None) {
+    } else if (Py_IS_NONE(pobj)) {
         pptr = (char *)NULL;
     } else {
         PyErr_SetString(PyExc_OSError, "Int or String expected");

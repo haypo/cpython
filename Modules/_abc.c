@@ -152,7 +152,7 @@ _destroy(PyObject *setweakref, PyObject *objweakref)
 {
     PyObject *set;
     set = PyWeakref_GET_OBJECT(setweakref);
-    if (set == Py_None) {
+    if (Py_IS_NONE(set)) {
         Py_RETURN_NONE;
     }
     Py_INCREF(set);
@@ -791,7 +791,7 @@ subclasscheck_check_registry(_abc_data *impl, PyObject *subclass,
             ret = -1;
             break;
         }
-        if (rkey == Py_None) {
+        if (Py_IS_NONE(rkey)) {
             continue;
         }
         Py_INCREF(rkey);

@@ -150,7 +150,7 @@ BaseException_setstate(PyObject *self, PyObject *state)
     PyObject *d_key, *d_value;
     Py_ssize_t i = 0;
 
-    if (state != Py_None) {
+    if (!Py_IS_NONE(state)) {
         if (!PyDict_Check(state)) {
             PyErr_SetString(PyExc_TypeError, "state is not a dictionary");
             return NULL;
@@ -227,7 +227,7 @@ BaseException_set_tb(PyBaseExceptionObject *self, PyObject *tb, void *Py_UNUSED(
         PyErr_SetString(PyExc_TypeError, "__traceback__ may not be deleted");
         return -1;
     }
-    else if (!(tb == Py_None || PyTraceBack_Check(tb))) {
+    else if (!(Py_IS_NONE(tb) || PyTraceBack_Check(tb))) {
         PyErr_SetString(PyExc_TypeError,
                         "__traceback__ must be a traceback or None");
         return -1;
@@ -253,7 +253,7 @@ BaseException_set_context(PyObject *self, PyObject *arg, void *Py_UNUSED(ignored
     if (arg == NULL) {
         PyErr_SetString(PyExc_TypeError, "__context__ may not be deleted");
         return -1;
-    } else if (arg == Py_None) {
+    } else if (Py_IS_NONE(arg)) {
         arg = NULL;
     } else if (!PyExceptionInstance_Check(arg)) {
         PyErr_SetString(PyExc_TypeError, "exception context must be None "
@@ -282,7 +282,7 @@ BaseException_set_cause(PyObject *self, PyObject *arg, void *Py_UNUSED(ignored))
     if (arg == NULL) {
         PyErr_SetString(PyExc_TypeError, "__cause__ may not be deleted");
         return -1;
-    } else if (arg == Py_None) {
+    } else if (Py_IS_NONE(arg)) {
         arg = NULL;
     } else if (!PyExceptionInstance_Check(arg)) {
         PyErr_SetString(PyExc_TypeError, "exception cause must be None "
@@ -751,7 +751,7 @@ ImportError_reduce(PyImportErrorObject *self, PyObject *Py_UNUSED(ignored))
     if (state == NULL)
         return NULL;
     args = ((PyBaseExceptionObject *)self)->args;
-    if (state == Py_None)
+    if (Py_IS_NONE(state))
         res = PyTuple_Pack(2, Py_TYPE(self), args);
     else
         res = PyTuple_Pack(3, Py_TYPE(self), args, state);
@@ -891,7 +891,7 @@ oserror_init(PyOSErrorObject *self, PyObject **p_args,
     Py_ssize_t nargs = PyTuple_GET_SIZE(args);
 
     /* self->filename will remain Py_None otherwise */
-    if (filename && filename != Py_None) {
+    if (filename && !Py_IS_NONE(filename)) {
         if (Py_IS_TYPE(self, (PyTypeObject *) PyExc_BlockingIOError) &&
             PyNumber_Check(filename)) {
             /* BlockingIOError's 3rd argument can be the number of
@@ -905,7 +905,7 @@ oserror_init(PyOSErrorObject *self, PyObject **p_args,
             Py_INCREF(filename);
             self->filename = filename;
 
-            if (filename2 && filename2 != Py_None) {
+            if (filename2 && !Py_IS_NONE(filename2)) {
                 Py_INCREF(filename2);
                 self->filename2 = filename2;
             }

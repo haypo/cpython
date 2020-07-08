@@ -270,7 +270,7 @@ random_seed(RandomObject *self, PyObject *arg)
     size_t bits, keyused;
     int res;
 
-    if (arg == NULL || arg == Py_None) {
+    if (arg == NULL || Py_IS_NONE(arg)) {
        if (random_seed_urandom(self) < 0) {
             PyErr_Clear();
 

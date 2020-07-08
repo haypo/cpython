@@ -929,7 +929,7 @@ _io__RawIOBase_read_impl(PyObject *self, Py_ssize_t n)
         return NULL;
 
     res = PyObject_CallMethodObjArgs(self, _PyIO_str_readinto, b, NULL);
-    if (res == NULL || res == Py_None) {
+    if (res == NULL || Py_IS_NONE(res)) {
         Py_DECREF(b);
         return res;
     }
@@ -976,7 +976,7 @@ _io__RawIOBase_readall_impl(PyObject *self)
             Py_DECREF(chunks);
             return NULL;
         }
-        if (data == Py_None) {
+        if (Py_IS_NONE(data)) {
             if (PyList_GET_SIZE(chunks) == 0) {
                 Py_DECREF(chunks);
                 return data;

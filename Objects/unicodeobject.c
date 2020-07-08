@@ -3347,7 +3347,7 @@ _PyUnicode_WideCharString_Opt_Converter(PyObject *obj, void *ptr)
         *p = NULL;
         return 1;
     }
-    if (obj == Py_None) {
+    if (Py_IS_NONE(obj)) {
         *p = NULL;
         return 1;
     }
@@ -8296,7 +8296,7 @@ charmap_decode_mapping(const char *s,
         }
 
         /* Apply mapping */
-        if (item == Py_None)
+        if (Py_IS_NONE(item))
             goto Undefined;
         if (PyLong_Check(item)) {
             long value = PyLong_AS_LONG(item);
@@ -8627,7 +8627,7 @@ charmapencode_lookup(Py_UCS4 c, PyObject *mapping)
         } else
             return NULL;
     }
-    else if (x == Py_None)
+    else if (Py_IS_NONE(x))
         return x;
     else if (PyLong_Check(x)) {
         long value = PyLong_AS_LONG(x);
@@ -8696,7 +8696,7 @@ charmapencode_output(Py_UCS4 c, PyObject *mapping,
     rep = charmapencode_lookup(c, mapping);
     if (rep==NULL)
         return enc_EXCEPTION;
-    else if (rep==Py_None) {
+    else if (Py_IS_NONE(rep)) {
         Py_DECREF(rep);
         return enc_FAILED;
     } else {
@@ -8772,7 +8772,7 @@ charmap_encoding_error(
         rep = charmapencode_lookup(ch, mapping);
         if (rep==NULL)
             return -1;
-        else if (rep!=Py_None) {
+        else if (!Py_IS_NONE(rep)) {
             Py_DECREF(rep);
             break;
         }
@@ -9076,7 +9076,7 @@ charmaptranslate_lookup(Py_UCS4 c, PyObject *mapping, PyObject **result)
         } else
             return -1;
     }
-    else if (x == Py_None) {
+    else if (Py_IS_NONE(x)) {
         *result = x;
         return 0;
     }
@@ -9125,7 +9125,7 @@ charmaptranslate_output(Py_UCS4 ch, PyObject *mapping,
         return 1;
     }
 
-    if (item == Py_None) {
+    if (Py_IS_NONE(item)) {
         Py_DECREF(item);
         return 0;
     }
@@ -9167,7 +9167,7 @@ unicode_fast_translate_lookup(PyObject *mapping, Py_UCS1 ch,
         return -1;
     }
 
-    if (item == Py_None) {
+    if (Py_IS_NONE(item)) {
         /* deletion */
         translate[ch] = 0xfe;
     }
@@ -9354,7 +9354,7 @@ _PyUnicode_TranslateCharmap(PyObject *input,
             if (charmaptranslate_lookup(ch, mapping, &x))
                 goto onError;
             Py_XDECREF(x);
-            if (x != Py_None)
+            if (!Py_IS_NONE(x))
                 break;
             ++collend;
         }
@@ -12849,7 +12849,7 @@ do_strip(PyObject *self, int striptype)
 static PyObject *
 do_argstrip(PyObject *self, int striptype, PyObject *sep)
 {
-    if (sep != Py_None) {
+    if (!Py_IS_NONE(sep)) {
         if (PyUnicode_Check(sep))
             return _PyUnicode_XStrip(self, striptype, sep);
         else {
@@ -13364,7 +13364,7 @@ static PyObject *
 unicode_split_impl(PyObject *self, PyObject *sep, Py_ssize_t maxsplit)
 /*[clinic end generated code: output=3a65b1db356948dc input=606e750488a82359]*/
 {
-    if (sep == Py_None)
+    if (Py_IS_NONE(sep))
         return split(self, NULL, maxsplit);
     if (PyUnicode_Check(sep))
         return split(self, sep, maxsplit);
@@ -13542,7 +13542,7 @@ static PyObject *
 unicode_rsplit_impl(PyObject *self, PyObject *sep, Py_ssize_t maxsplit)
 /*[clinic end generated code: output=c2b815c63bcabffc input=12ad4bf57dd35f15]*/
 {
-    if (sep == Py_None)
+    if (Py_IS_NONE(sep))
         return rsplit(self, NULL, maxsplit);
     if (PyUnicode_Check(sep))
         return rsplit(self, sep, maxsplit);

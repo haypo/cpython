@@ -173,20 +173,20 @@ PySlice_GetIndices(PyObject *_r, Py_ssize_t length,
 {
     PySliceObject *r = (PySliceObject*)_r;
     /* XXX support long ints */
-    if (r->step == Py_None) {
+    if (Py_IS_NONE(r->step)) {
         *step = 1;
     } else {
         if (!PyLong_Check(r->step)) return -1;
         *step = PyLong_AsSsize_t(r->step);
     }
-    if (r->start == Py_None) {
+    if (Py_IS_NONE(r->start)) {
         *start = *step < 0 ? length-1 : 0;
     } else {
         if (!PyLong_Check(r->start)) return -1;
         *start = PyLong_AsSsize_t(r->start);
         if (*start < 0) *start += length;
     }
-    if (r->stop == Py_None) {
+    if (Py_IS_NONE(r->stop)) {
         *stop = *step < 0 ? -1 : length;
     } else {
         if (!PyLong_Check(r->stop)) return -1;
@@ -208,7 +208,7 @@ PySlice_Unpack(PyObject *_r,
 
     Py_BUILD_ASSERT(PY_SSIZE_T_MIN + 1 <= -PY_SSIZE_T_MAX);
 
-    if (r->step == Py_None) {
+    if (Py_IS_NONE(r->step)) {
         *step = 1;
     }
     else {
@@ -227,14 +227,14 @@ PySlice_Unpack(PyObject *_r,
             *step = -PY_SSIZE_T_MAX;
     }
 
-    if (r->start == Py_None) {
+    if (Py_IS_NONE(r->start)) {
         *start = *step < 0 ? PY_SSIZE_T_MAX : 0;
     }
     else {
         if (!_PyEval_SliceIndex(r->start, start)) return -1;
     }
 
-    if (r->stop == Py_None) {
+    if (Py_IS_NONE(r->stop)) {
         *stop = *step < 0 ? PY_SSIZE_T_MIN : PY_SSIZE_T_MAX;
     }
     else {
@@ -387,7 +387,7 @@ _PySlice_GetLongIndices(PySliceObject *self, PyObject *length,
     int step_is_negative, cmp_result;
 
     /* Convert step to an integer; raise for zero step. */
-    if (self->step == Py_None) {
+    if (Py_IS_NONE(self->step)) {
         step = _PyLong_One;
         Py_INCREF(step);
         step_is_negative = 0;
@@ -424,7 +424,7 @@ _PySlice_GetLongIndices(PySliceObject *self, PyObject *length,
     }
 
     /* Compute start. */
-    if (self->start == Py_None) {
+    if (Py_IS_NONE(self->start)) {
         start = step_is_negative ? upper : lower;
         Py_INCREF(start);
     }
@@ -463,7 +463,7 @@ _PySlice_GetLongIndices(PySliceObject *self, PyObject *length,
     }
 
     /* Compute stop. */
-    if (self->stop == Py_None) {
+    if (Py_IS_NONE(self->stop)) {
         stop = step_is_negative ? lower : upper;
         Py_INCREF(stop);
     }

@@ -539,7 +539,7 @@ child_exec(char *const exec_array[],
 
 
     reached_preexec = 1;
-    if (preexec_fn != Py_None && preexec_fn_args_tuple) {
+    if (!Py_IS_NONE(preexec_fn) && preexec_fn_args_tuple) {
         /* This is where the user has asked us to deadlock their program. */
         result = PyObject_Call(preexec_fn, preexec_fn_args_tuple, NULL);
         if (result == NULL) {
@@ -647,7 +647,7 @@ subprocess_fork_exec(PyObject* self, PyObject *args)
             &preexec_fn))
         return NULL;
 
-    if ((preexec_fn != Py_None) &&
+    if ((!Py_IS_NONE(preexec_fn)) &&
             (PyInterpreterState_Get() != PyInterpreterState_Main())) {
         PyErr_SetString(PyExc_RuntimeError,
                         "preexec_fn not supported within subinterpreters");
@@ -672,7 +672,7 @@ subprocess_fork_exec(PyObject* self, PyObject *args)
     }
 
     /* We need to call gc.disable() when we'll be calling preexec_fn */
-    if (preexec_fn != Py_None) {
+    if (!Py_IS_NONE(preexec_fn)) {
         PyObject *result;
 
         gc_module = PyImport_ImportModule("gc");
@@ -706,7 +706,7 @@ subprocess_fork_exec(PyObject* self, PyObject *args)
     /* Convert args and env into appropriate arguments for exec() */
     /* These conversions are done in the parent process to avoid allocating
        or freeing memory in the child process. */
-    if (process_args != Py_None) {
+    if (!Py_IS_NONE(process_args)) {
         Py_ssize_t num_args;
         /* Equivalent to:  */
         /*  tuple(PyUnicode_FSConverter(arg) for arg in process_args)  */
@@ -736,13 +736,13 @@ subprocess_fork_exec(PyObject* self, PyObject *args)
             goto cleanup;
     }
 
-    if (env_list != Py_None) {
+    if (!Py_IS_NONE(env_list)) {
         envp = _PySequence_BytesToCharpArray(env_list);
         if (!envp)
             goto cleanup;
     }
 
-    if (cwd_obj != Py_None) {
+    if (!Py_IS_NONE(cwd_obj)) {
         if (PyUnicode_FSConverter(cwd_obj, &cwd_obj2) == 0)
             goto cleanup;
         cwd = PyBytes_AsString(cwd_obj2);
@@ -751,7 +751,7 @@ subprocess_fork_exec(PyObject* self, PyObject *args)
         cwd_obj2 = NULL;
     }
 
-    if (groups_list != Py_None) {
+    if (!Py_IS_NONE(groups_list)) {
 #ifdef HAVE_SETGROUPS
         Py_ssize_t i;
         unsigned long gid;
@@ -809,7 +809,7 @@ subprocess_fork_exec(PyObject* self, PyObject *args)
 #endif /* HAVE_SETGROUPS */
     }
 
-    if (gid_object != Py_None) {
+    if (!Py_IS_NONE(gid_object)) {
 #ifdef HAVE_SETREGID
         if (!_Py_Gid_Converter(gid_object, &gid))
             goto cleanup;
@@ -822,7 +822,7 @@ subprocess_fork_exec(PyObject* self, PyObject *args)
 #endif /* HAVE_SETREUID */
     }
 
-    if (uid_object != Py_None) {
+    if (!Py_IS_NONE(uid_object)) {
 #ifdef HAVE_SETREUID
         if (!_Py_Uid_Converter(uid_object, &uid))
             goto cleanup;
@@ -838,7 +838,7 @@ subprocess_fork_exec(PyObject* self, PyObject *args)
     /* This must be the last thing done before fork() because we do not
      * want to call PyOS_BeforeFork() if there is any chance of another
      * error leading to the cleanup: code without calling fork(). */
-    if (preexec_fn != Py_None) {
+    if (!Py_IS_NONE(preexec_fn)) {
         preexec_fn_args_tuple = PyTuple_New(0);
         if (!preexec_fn_args_tuple)
             goto cleanup;
@@ -855,7 +855,7 @@ subprocess_fork_exec(PyObject* self, PyObject *args)
          * http://www.opengroup.org/onlinepubs/009695399/functions/xsh_chap02_04.html.
          */
 
-        if (preexec_fn != Py_None) {
+        if (!Py_IS_NONE(preexec_fn)) {
             /* We'll be calling back into Python later so we need to do this.
              * This call may not be async-signal-safe but neither is calling
              * back into Python.  The user asked us to use hope as a strategy

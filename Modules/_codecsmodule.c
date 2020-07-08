@@ -564,7 +564,7 @@ _codecs_charmap_decode_impl(PyObject *module, Py_buffer *data,
 {
     PyObject *decoded;
 
-    if (mapping == Py_None)
+    if (Py_IS_NONE(mapping))
         mapping = NULL;
 
     decoded = PyUnicode_DecodeCharmap(data->buf, data->len, mapping, errors);
@@ -874,7 +874,7 @@ _codecs_charmap_encode_impl(PyObject *module, PyObject *str,
                             const char *errors, PyObject *mapping)
 /*[clinic end generated code: output=047476f48495a9e9 input=2a98feae73dadce8]*/
 {
-    if (mapping == Py_None)
+    if (Py_IS_NONE(mapping))
         mapping = NULL;
 
     return codec_tuple(_PyUnicode_EncodeCharmap(str, mapping, errors),

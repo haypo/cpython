@@ -182,7 +182,7 @@ gen_send_ex(PyGenObject *gen, PyObject *arg, int exc, int closing, int *is_retur
 
     assert(_PyFrame_IsRunnable(f));
     if (f->f_lasti == -1) {
-        if (arg && arg != Py_None) {
+        if (arg && !Py_IS_NONE(arg)) {
             const char *msg = "can't send non-None value to a "
                               "just-started generator";
             if (PyCoro_CheckExact(gen)) {
@@ -230,7 +230,7 @@ gen_send_ex(PyGenObject *gen, PyObject *arg, int exc, int closing, int *is_retur
     /* If the generator just returned (as opposed to yielding), signal
      * that the generator is exhausted. */
     if (result &&  _PyFrameHasCompleted(f)) {
-        if (result == Py_None) {
+        if (Py_IS_NONE(result)) {
             /* Delay exception instantiation if we can */
             if (PyAsyncGen_CheckExact(gen)) {
                 PyErr_SetNone(PyExc_StopAsyncIteration);
@@ -508,7 +508,7 @@ _gen_throw(PyGenObject *gen, int close_on_genexit,
 throw_here:
     /* First, check the traceback argument, replacing None with
        NULL. */
-    if (tb == Py_None) {
+    if (Py_IS_NONE(tb)) {
         tb = NULL;
     }
     else if (tb != NULL && !PyTraceBack_Check(tb)) {
@@ -526,7 +526,7 @@ throw_here:
 
     else if (PyExceptionInstance_Check(typ)) {
         /* Raising an instance.  The value should be a dummy. */
-        if (val && val != Py_None) {
+        if (val && !Py_IS_NONE(val)) {
             PyErr_SetString(PyExc_TypeError,
               "instance exception may not have a separate value");
             goto failed_throw;
@@ -1594,7 +1594,7 @@ async_gen_asend_send(PyAsyncGenASend *o, PyObject *arg)
             return NULL;
         }
 
-        if (arg == NULL || arg == Py_None) {
+        if (arg == NULL || Py_IS_NONE(arg)) {
             arg = o->ags_sendval;
         }
         o->ags_state = AWAITABLE_STATE_ITER;
@@ -1912,7 +1912,7 @@ async_gen_athrow_send(PyAsyncGenAThrow *o, PyObject *arg)
             return NULL;
         }
 
-        if (arg != Py_None) {
+        if (!Py_IS_NONE(arg)) {
             PyErr_SetString(PyExc_RuntimeError, NON_INIT_CORO_MSG);
             return NULL;
         }

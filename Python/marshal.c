@@ -348,7 +348,7 @@ w_object(PyObject *v, WFILE *p)
     else if (v == NULL) {
         w_byte(TYPE_NULL, p);
     }
-    else if (v == Py_None) {
+    else if (Py_IS_NONE(v)) {
         w_byte(TYPE_NONE, p);
     }
     else if (v == PyExc_StopIteration) {
@@ -1408,7 +1408,7 @@ r_object(RFILE *p)
             break;
         }
         v = PyList_GET_ITEM(p->refs, n);
-        if (v == Py_None) {
+        if (Py_IS_NONE(v)) {
             PyErr_SetString(PyExc_ValueError, "bad marshal data (invalid reference)");
             break;
         }

@@ -655,7 +655,7 @@ _io_StringIO___init___impl(stringio *self, PyObject *value,
 
     /* Parse the newline argument. We only want to allow unicode objects or
        None. */
-    if (newline_obj == Py_None) {
+    if (Py_IS_NONE(newline_obj)) {
         newline = NULL;
     }
     else if (newline_obj) {
@@ -678,7 +678,7 @@ _io_StringIO___init___impl(stringio *self, PyObject *value,
                      "illegal newline value: %R", newline_obj);
         return -1;
     }
-    if (value && value != Py_None && !PyUnicode_Check(value)) {
+    if (value && !Py_IS_NONE(value) && !PyUnicode_Check(value)) {
         PyErr_Format(PyExc_TypeError,
                      "initial_value must be str or None, not %.200s",
                      Py_TYPE(value)->tp_name);
@@ -692,8 +692,8 @@ _io_StringIO___init___impl(stringio *self, PyObject *value,
     Py_CLEAR(self->writenl);
     Py_CLEAR(self->decoder);
 
-    assert((newline != NULL && newline_obj != Py_None) ||
-           (newline == NULL && newline_obj == Py_None));
+    assert((newline != NULL && !Py_IS_NONE(newline_obj)) ||
+           (newline == NULL && Py_IS_NONE(newline_obj)));
 
     if (newline) {
         self->readnl = PyUnicode_FromString(newline);
@@ -724,7 +724,7 @@ _io_StringIO___init___impl(stringio *self, PyObject *value,
     /* Now everything is set up, resize buffer to size of initial value,
        and copy it */
     self->string_size = 0;
-    if (value && value != Py_None)
+    if (value && !Py_IS_NONE(value))
         value_len = PyUnicode_GetLength(value);
     else
         value_len = 0;
@@ -919,7 +919,7 @@ stringio_setstate(stringio *self, PyObject *state)
 
     /* Set the dictionary of the instance variables. */
     dict = PyTuple_GET_ITEM(state, 3);
-    if (dict != Py_None) {
+    if (!Py_IS_NONE(dict)) {
         if (!PyDict_Check(dict)) {
             PyErr_Format(PyExc_TypeError,
                          "fourth item of state should be a dict, got a %.200s",

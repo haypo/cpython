@@ -1745,7 +1745,7 @@ bytes_split_impl(PyBytesObject *self, PyObject *sep, Py_ssize_t maxsplit)
 
     if (maxsplit < 0)
         maxsplit = PY_SSIZE_T_MAX;
-    if (sep == Py_None)
+    if (Py_IS_NONE(sep))
         return stringlib_split_whitespace((PyObject*) self, s, len, maxsplit);
     if (PyObject_GetBuffer(sep, &vsub, PyBUF_SIMPLE) != 0)
         return NULL;
@@ -1830,7 +1830,7 @@ bytes_rsplit_impl(PyBytesObject *self, PyObject *sep, Py_ssize_t maxsplit)
 
     if (maxsplit < 0)
         maxsplit = PY_SSIZE_T_MAX;
-    if (sep == Py_None)
+    if (Py_IS_NONE(sep))
         return stringlib_rsplit_whitespace((PyObject*) self, s, len, maxsplit);
     if (PyObject_GetBuffer(sep, &vsub, PyBUF_SIMPLE) != 0)
         return NULL;
@@ -1974,7 +1974,7 @@ do_strip(PyBytesObject *self, int striptype)
 Py_LOCAL_INLINE(PyObject *)
 do_argstrip(PyBytesObject *self, int striptype, PyObject *bytes)
 {
-    if (bytes != Py_None) {
+    if (!Py_IS_NONE(bytes)) {
         return do_xstrip(self, striptype, bytes);
     }
     return do_strip(self, striptype);
@@ -2077,7 +2077,7 @@ bytes_translate_impl(PyBytesObject *self, PyObject *table,
         table_chars = PyBytes_AS_STRING(table);
         tablen = PyBytes_GET_SIZE(table);
     }
-    else if (table == Py_None) {
+    else if (Py_IS_NONE(table)) {
         table_chars = NULL;
         tablen = 256;
     }

@@ -157,7 +157,7 @@ check_matched(PyObject *obj, PyObject *arg)
     int rc;
 
     /* A 'None' filter always matches */
-    if (obj == Py_None)
+    if (Py_IS_NONE(obj))
         return 1;
 
     /* An internal plain text default filter must match exactly */
@@ -626,10 +626,10 @@ warn_explicit(PyObject *category, PyObject *message,
        In this case, the Python warnings module was probably unloaded, filters
        are no more available to choose as action. It is safer to ignore the
        warning and do nothing. */
-    if (module == Py_None)
+    if (Py_IS_NONE(module))
         Py_RETURN_NONE;
 
-    if (registry && !PyDict_Check(registry) && (registry != Py_None)) {
+    if (registry && !PyDict_Check(registry) && (!Py_IS_NONE(registry))) {
         PyErr_SetString(PyExc_TypeError, "'registry' must be a dict or None");
         return NULL;
     }
@@ -666,7 +666,7 @@ warn_explicit(PyObject *category, PyObject *message,
     if (lineno_obj == NULL)
         goto cleanup;
 
-    if (source == Py_None) {
+    if (Py_IS_NONE(source)) {
         source = NULL;
     }
 
@@ -675,7 +675,7 @@ warn_explicit(PyObject *category, PyObject *message,
     if (key == NULL)
         goto cleanup;
 
-    if ((registry != NULL) && (registry != Py_None)) {
+    if ((registry != NULL) && (!Py_IS_NONE(registry))) {
         rc = already_warned(registry, key, 0);
         if (rc == -1)
             goto cleanup;
@@ -701,14 +701,14 @@ warn_explicit(PyObject *category, PyObject *message,
        is "always". */
     rc = 0;
     if (!_PyUnicode_EqualToASCIIString(action, "always")) {
-        if (registry != NULL && registry != Py_None &&
+        if (registry != NULL && !Py_IS_NONE(registry) &&
             PyDict_SetItem(registry, key, Py_True) < 0)
         {
             goto cleanup;
         }
 
         if (_PyUnicode_EqualToASCIIString(action, "once")) {
-            if (registry == NULL || registry == Py_None) {
+            if (registry == NULL || Py_IS_NONE(registry)) {
                 WarningsState *st = warnings_get_state();
                 if (st == NULL) {
                     goto cleanup;
@@ -722,7 +722,7 @@ warn_explicit(PyObject *category, PyObject *message,
         }
         else if (_PyUnicode_EqualToASCIIString(action, "module")) {
             /* registry[(text, category, 0)] = 1 */
-            if (registry != NULL && registry != Py_None)
+            if (registry != NULL && !Py_IS_NONE(registry))
                 rc = update_registry(registry, text, category, 0);
         }
         else if (!_PyUnicode_EqualToASCIIString(action, "default")) {
@@ -890,7 +890,7 @@ setup_context(Py_ssize_t stack_level, PyObject **filename, int *lineno,
 
     /* Setup module. */
     *module = _PyDict_GetItemIdWithError(globals, &PyId___name__);
-    if (*module == Py_None || (*module != NULL && PyUnicode_Check(*module))) {
+    if (Py_IS_NONE(*module) || (*module != NULL && PyUnicode_Check(*module))) {
         Py_INCREF(*module);
     }
     else if (_PyErr_Occurred(tstate)) {
@@ -923,7 +923,7 @@ get_category(PyObject *message, PyObject *category)
 
     if (rc == 1)
         category = (PyObject*)Py_TYPE(message);
-    else if (category == NULL || category == Py_None)
+    else if (category == NULL || Py_IS_NONE(category))
         category = PyExc_UserWarning;
 
     /* Validate category. */
@@ -1019,7 +1019,7 @@ get_source_line(PyObject *module_globals, int lineno)
     if (!source) {
         return NULL;
     }
-    if (source == Py_None) {
+    if (Py_IS_NONE(source)) {
         Py_DECREF(source);
         return NULL;
     }
@@ -1060,7 +1060,7 @@ warnings_warn_explicit(PyObject *self, PyObject *args, PyObject *kwds)
                 &registry, &module_globals, &sourceobj))
         return NULL;
 
-    if (module_globals && module_globals != Py_None) {
+    if (module_globals && !Py_IS_NONE(module_globals)) {
         if (!PyDict_Check(module_globals)) {
             PyErr_Format(PyExc_TypeError,
                          "module_globals must be a dict, not '%.200s'",

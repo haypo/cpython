@@ -18,7 +18,7 @@ int
 _Py_convert_optional_to_ssize_t(PyObject *obj, void *result)
 {
     Py_ssize_t limit;
-    if (obj == Py_None) {
+    if (Py_IS_NONE(obj)) {
         return 1;
     }
     else if (_PyIndex_Check(obj)) {

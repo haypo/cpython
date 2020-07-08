@@ -433,7 +433,7 @@ parse_time_t_args(PyObject *args, const char *format, time_t *pwhen)
 
     if (!PyArg_ParseTuple(args, format, &ot))
         return 0;
-    if (ot == NULL || ot == Py_None) {
+    if (ot == NULL || Py_IS_NONE(ot)) {
         whent = time(NULL);
     }
     else {
@@ -556,7 +556,7 @@ gettmarg(PyObject *args, struct tm *p, const char *format)
     if (Py_IS_TYPE(args, &StructTimeType)) {
         PyObject *item;
         item = PyStructSequence_GET_ITEM(args, 9);
-        if (item != Py_None) {
+        if (!Py_IS_NONE(item)) {
             p->tm_zone = (char *)PyUnicode_AsUTF8(item);
             if (p->tm_zone == NULL) {
                 return 0;
@@ -577,7 +577,7 @@ gettmarg(PyObject *args, struct tm *p, const char *format)
 #endif
         }
         item = PyStructSequence_GET_ITEM(args, 10);
-        if (item != Py_None) {
+        if (!Py_IS_NONE(item)) {
             p->tm_gmtoff = PyLong_AsLong(item);
             if (PyErr_Occurred())
                 return 0;

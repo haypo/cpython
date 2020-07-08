@@ -80,7 +80,7 @@ winsound_PlaySound_impl(PyObject *module, PyObject *sound, int flags)
     wchar_t *wsound;
     Py_buffer view = {NULL, NULL};
 
-    if (sound == Py_None) {
+    if (Py_IS_NONE(sound)) {
         wsound = NULL;
     } else if (flags & SND_MEMORY) {
         if (flags & SND_ASYNC) {
@@ -113,7 +113,7 @@ winsound_PlaySound_impl(PyObject *module, PyObject *sound, int flags)
     Py_END_ALLOW_THREADS
     if (view.obj) {
         PyBuffer_Release(&view);
-    } else if (sound != Py_None) {
+    } else if (!Py_IS_NONE(sound)) {
         PyMem_Free(wsound);
     }
     if (!ok) {

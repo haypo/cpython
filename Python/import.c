@@ -590,7 +590,7 @@ _PyImport_Cleanup(PyThreadState *tstate)
             PyObject *tup = PyList_GET_ITEM(weaklist, i);
             PyObject *name = PyTuple_GET_ITEM(tup, 0);
             PyObject *mod = PyWeakref_GET_OBJECT(PyTuple_GET_ITEM(tup, 1));
-            if (mod == Py_None)
+            if (Py_IS_NONE(mod))
                 continue;
             assert(PyModule_Check(mod));
             dict = PyModule_GetDict(mod);
@@ -1585,7 +1585,7 @@ resolve_name(PyThreadState *tstate, PyObject *name, PyObject *globals, int level
         goto error;
     }
     package = _PyDict_GetItemIdWithError(globals, &PyId___package__);
-    if (package == Py_None) {
+    if (Py_IS_NONE(package)) {
         package = NULL;
     }
     else if (package == NULL && _PyErr_Occurred(tstate)) {
@@ -1603,7 +1603,7 @@ resolve_name(PyThreadState *tstate, PyObject *name, PyObject *globals, int level
                              "package must be a string");
             goto error;
         }
-        else if (spec != NULL && spec != Py_None) {
+        else if (spec != NULL && !Py_IS_NONE(spec)) {
             int equal;
             PyObject *parent = _PyObject_GetAttrId(spec, &PyId_parent);
             if (parent == NULL) {
@@ -1623,7 +1623,7 @@ resolve_name(PyThreadState *tstate, PyObject *name, PyObject *globals, int level
             }
         }
     }
-    else if (spec != NULL && spec != Py_None) {
+    else if (spec != NULL && !Py_IS_NONE(spec)) {
         package = _PyObject_GetAttrId(spec, &PyId_parent);
         if (package == NULL) {
             goto error;
@@ -1792,7 +1792,7 @@ PyImport_GetModule(PyObject *name)
     PyObject *mod;
 
     mod = import_get_module(tstate, name);
-    if (mod != NULL && mod != Py_None) {
+    if (mod != NULL && !Py_IS_NONE(mod)) {
         if (import_ensure_initialized(tstate, mod, name) < 0) {
             Py_DECREF(mod);
             remove_importlib_frames(tstate);
@@ -1856,7 +1856,7 @@ PyImport_ImportModuleLevelObject(PyObject *name, PyObject *globals,
         goto error;
     }
 
-    if (mod != NULL && mod != Py_None) {
+    if (mod != NULL && !Py_IS_NONE(mod)) {
         if (import_ensure_initialized(tstate, mod, name) < 0) {
             goto error;
         }
@@ -1870,7 +1870,7 @@ PyImport_ImportModuleLevelObject(PyObject *name, PyObject *globals,
     }
 
     has_from = 0;
-    if (fromlist != NULL && fromlist != Py_None) {
+    if (fromlist != NULL && !Py_IS_NONE(fromlist)) {
         has_from = PyObject_IsTrue(fromlist);
         if (has_from < 0)
             goto error;

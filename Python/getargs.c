@@ -531,7 +531,7 @@ converttuple(PyObject *arg, const char **p_format, va_list *p_va, int flags,
                       toplevel ? "expected %d arguments, not %.50s" :
                       "must be %d-item sequence, not %.50s",
                   n,
-                  arg == Py_None ? "None" : Py_TYPE(arg)->tp_name);
+                  Py_IS_NONE(arg) ? "None" : Py_TYPE(arg)->tp_name);
         return msgbuf;
     }
 
@@ -620,7 +620,7 @@ _PyArg_BadArgument(const char *fname, const char *displayname,
     PyErr_Format(PyExc_TypeError,
                  "%.200s() %.200s must be %.50s, not %.50s",
                  fname, displayname, expected,
-                 arg == Py_None ? "None" : Py_TYPE(arg)->tp_name);
+                 Py_IS_NONE(arg) ? "None" : Py_TYPE(arg)->tp_name);
 }
 
 static const char *
@@ -635,7 +635,7 @@ converterr(const char *expected, PyObject *arg, char *msgbuf, size_t bufsize)
     else {
         PyOS_snprintf(msgbuf, bufsize,
                       "must be %.50s, not %.50s", expected,
-                      arg == Py_None ? "None" : Py_TYPE(arg)->tp_name);
+                      Py_IS_NONE(arg) ? "None" : Py_TYPE(arg)->tp_name);
     }
     return msgbuf;
 }
@@ -936,7 +936,7 @@ convertsimple(PyObject *arg, const char **p_format, va_list *p_va, int flags,
             /* "s*" or "z*" */
             Py_buffer *p = (Py_buffer *)va_arg(*p_va, Py_buffer *);
 
-            if (c == 'z' && arg == Py_None)
+            if (c == 'z' && Py_IS_NONE(arg))
                 PyBuffer_FillInfo(p, NULL, NULL, 0, 1, 0);
             else if (PyUnicode_Check(arg)) {
                 Py_ssize_t len;
@@ -963,7 +963,7 @@ convertsimple(PyObject *arg, const char **p_format, va_list *p_va, int flags,
             REQUIRE_PY_SSIZE_T_CLEAN;
             Py_ssize_t *psize = va_arg(*p_va, Py_ssize_t*);
 
-            if (c == 'z' && arg == Py_None) {
+            if (c == 'z' && Py_IS_NONE(arg)) {
                 *p = NULL;
                 *psize = 0;
             }
@@ -991,7 +991,7 @@ convertsimple(PyObject *arg, const char **p_format, va_list *p_va, int flags,
             Py_ssize_t len;
             sarg = NULL;
 
-            if (c == 'z' && arg == Py_None)
+            if (c == 'z' && Py_IS_NONE(arg))
                 *p = NULL;
             else if (PyUnicode_Check(arg)) {
                 sarg = PyUnicode_AsUTF8AndSize(arg, &len);
@@ -1024,7 +1024,7 @@ _Py_COMP_DIAG_IGNORE_DEPR_DECLS
             REQUIRE_PY_SSIZE_T_CLEAN;
             Py_ssize_t *psize = va_arg(*p_va, Py_ssize_t*);
 
-            if (c == 'Z' && arg == Py_None) {
+            if (c == 'Z' && Py_IS_NONE(arg)) {
                 *p = NULL;
                 *psize = 0;
             }
@@ -1041,7 +1041,7 @@ _Py_COMP_DIAG_IGNORE_DEPR_DECLS
             format++;
         } else {
             /* "u" or "Z" */
-            if (c == 'Z' && arg == Py_None)
+            if (c == 'Z' && Py_IS_NONE(arg))
                 *p = NULL;
             else if (PyUnicode_Check(arg)) {
                 Py_ssize_t len;

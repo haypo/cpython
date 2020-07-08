@@ -505,7 +505,7 @@ state_getslice(SRE_STATE* state, Py_ssize_t index, PyObject* string, int empty)
 
     index = (index - 1) * 2;
 
-    if (string == Py_None || index >= state->lastmark || !state->mark[index] || !state->mark[index+1]) {
+    if (Py_IS_NONE(string) || index >= state->lastmark || !state->mark[index] || !state->mark[index+1]) {
         if (empty)
             /* want empty string */
             i = j = 0;
@@ -1096,7 +1096,7 @@ pattern_subx(PatternObject* self, PyObject* ptemplate, PyObject* string,
         }
 
         /* add to list */
-        if (item != Py_None) {
+        if (!Py_IS_NONE(item)) {
             status = PyList_Append(list, item);
             Py_DECREF(item);
             if (status < 0)
@@ -1368,7 +1368,7 @@ _sre_compile_impl(PyObject *module, PyObject *pattern, int flags,
         return NULL;
     }
 
-    if (pattern == Py_None) {
+    if (Py_IS_NONE(pattern)) {
         self->isbytes = -1;
     }
     else {
@@ -1905,7 +1905,7 @@ match_getslice_by_index(MatchObject* self, Py_ssize_t index, PyObject* def)
     assert(0 <= index && index < self->groups);
     index *= 2;
 
-    if (self->string == Py_None || self->mark[index] < 0) {
+    if (Py_IS_NONE(self->string) || self->mark[index] < 0) {
         /* return default value if the string or group is undefined */
         Py_INCREF(def);
         return def;

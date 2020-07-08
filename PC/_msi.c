@@ -878,7 +878,7 @@ _msi_View_Execute(msiobj *self, PyObject *oparams)
     int status;
     MSIHANDLE params = 0;
 
-    if (oparams != Py_None) {
+    if (!Py_IS_NONE(oparams)) {
         if (!Py_IS_TYPE(oparams, &record_Type)) {
             PyErr_SetString(PyExc_TypeError, "Execute argument must be a record");
             return NULL;

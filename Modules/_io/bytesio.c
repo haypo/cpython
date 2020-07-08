@@ -511,7 +511,7 @@ _io_BytesIO_readlines_impl(bytesio *self, PyObject *arg)
         if (maxsize == -1 && PyErr_Occurred())
             return NULL;
     }
-    else if (arg == Py_None) {
+    else if (Py_IS_NONE(arg)) {
         /* No size limit, by default. */
         maxsize = -1;
     }
@@ -861,7 +861,7 @@ bytesio_setstate(bytesio *self, PyObject *state)
 
     /* Set the dictionary of the instance variables. */
     dict = PyTuple_GET_ITEM(state, 2);
-    if (dict != Py_None) {
+    if (!Py_IS_NONE(dict)) {
         if (!PyDict_Check(dict)) {
             PyErr_Format(PyExc_TypeError,
                          "third item of state should be a dict, got a %.200s",
@@ -941,7 +941,7 @@ _io_BytesIO___init___impl(bytesio *self, PyObject *initvalue)
                         "Existing exports of data: object cannot be re-sized");
         return -1;
     }
-    if (initvalue && initvalue != Py_None) {
+    if (initvalue && !Py_IS_NONE(initvalue)) {
         if (PyBytes_CheckExact(initvalue)) {
             Py_INCREF(initvalue);
             Py_XSETREF(self->buf, initvalue);

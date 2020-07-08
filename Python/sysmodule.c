@@ -690,13 +690,13 @@ sys_displayhook(PyObject *module, PyObject *o)
     /* Print value except if None */
     /* After printing, also assign to '_' */
     /* Before, set '_' to None to avoid recursion */
-    if (o == Py_None) {
+    if (Py_IS_NONE(o)) {
         Py_RETURN_NONE;
     }
     if (_PyObject_SetAttrId(builtins, &PyId__, Py_None) != 0)
         return NULL;
     outf = sys_get_object_id(tstate, &PyId_stdout);
-    if (outf == NULL || outf == Py_None) {
+    if (outf == NULL || Py_IS_NONE(outf)) {
         _PyErr_SetString(tstate, PyExc_RuntimeError, "lost sys.stdout");
         return NULL;
     }
@@ -991,7 +991,7 @@ trace_trampoline(PyObject *self, PyFrameObject *frame,
         return -1;
     }
 
-    if (result != Py_None) {
+    if (!Py_IS_NONE(result)) {
         Py_XSETREF(frame->f_trace, result);
     }
     else {
@@ -1008,7 +1008,7 @@ sys_settrace(PyObject *self, PyObject *args)
     }
 
     PyThreadState *tstate = _PyThreadState_GET();
-    if (args == Py_None) {
+    if (Py_IS_NONE(args)) {
         if (_PyEval_SetTrace(tstate, NULL, NULL) < 0) {
             return NULL;
         }
@@ -1057,7 +1057,7 @@ sys_setprofile(PyObject *self, PyObject *args)
     }
 
     PyThreadState *tstate = _PyThreadState_GET();
-    if (args == Py_None) {
+    if (Py_IS_NONE(args)) {
         if (_PyEval_SetProfile(tstate, NULL, NULL) < 0) {
             return NULL;
         }
@@ -1265,7 +1265,7 @@ sys_set_asyncgen_hooks(PyObject *self, PyObject *args, PyObject *kw)
         return NULL;
     }
 
-    if (finalizer && finalizer != Py_None) {
+    if (finalizer && !Py_IS_NONE(finalizer)) {
         if (!PyCallable_Check(finalizer)) {
             _PyErr_Format(tstate, PyExc_TypeError,
                           "callable finalizer expected, got %.50s",
@@ -1276,11 +1276,11 @@ sys_set_asyncgen_hooks(PyObject *self, PyObject *args, PyObject *kw)
             return NULL;
         }
     }
-    else if (finalizer == Py_None && _PyEval_SetAsyncGenFinalizer(NULL) < 0) {
+    else if (Py_IS_NONE(finalizer) && _PyEval_SetAsyncGenFinalizer(NULL) < 0) {
         return NULL;
     }
 
-    if (firstiter && firstiter != Py_None) {
+    if (firstiter && !Py_IS_NONE(firstiter)) {
         if (!PyCallable_Check(firstiter)) {
             _PyErr_Format(tstate, PyExc_TypeError,
                           "callable firstiter expected, got %.50s",
@@ -1291,7 +1291,7 @@ sys_set_asyncgen_hooks(PyObject *self, PyObject *args, PyObject *kw)
             return NULL;
         }
     }
-    else if (firstiter == Py_None && _PyEval_SetAsyncGenFirstiter(NULL) < 0) {
+    else if (Py_IS_NONE(firstiter) && _PyEval_SetAsyncGenFirstiter(NULL) < 0) {
         return NULL;
     }
 

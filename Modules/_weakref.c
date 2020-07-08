@@ -43,7 +43,7 @@ is_dead_weakref(PyObject *value)
         PyErr_SetString(PyExc_TypeError, "not a weakref");
         return -1;
     }
-    return PyWeakref_GET_OBJECT(value) == Py_None;
+    return Py_IS_NONE(PyWeakref_GET_OBJECT(value));
 }
 
 /*[clinic input]

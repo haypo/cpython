@@ -119,7 +119,7 @@ _sharedns_free(_sharedns *shared)
 static _sharedns *
 _get_shared_ns(PyObject *shareable)
 {
-    if (shareable == NULL || shareable == Py_None) {
+    if (shareable == NULL || Py_IS_NONE(shareable)) {
         return NULL;
     }
     Py_ssize_t len = PyDict_Size(shareable);

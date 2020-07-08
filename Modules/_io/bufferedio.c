@@ -889,7 +889,7 @@ _io__Buffered_read_impl(buffered *self, Py_ssize_t n)
     }
     else {
         res = _bufferedreader_read_fast(self, n);
-        if (res != Py_None)
+        if (!Py_IS_NONE(res))
             return res;
         Py_DECREF(res);
         if (!ENTER_BUFFERED(self))
@@ -931,7 +931,7 @@ _io__Buffered_read1_impl(buffered *self, Py_ssize_t n)
     if (have > 0) {
         n = Py_MIN(have, n);
         res = _bufferedreader_read_fast(self, n);
-        assert(res != Py_None);
+        assert(!Py_IS_NONE(res));
         return res;
     }
     res = PyBytes_FromStringAndSize(NULL, n);
@@ -1476,7 +1476,7 @@ _bufferedreader_raw_read(buffered *self, char *start, Py_ssize_t len)
     Py_DECREF(memobj);
     if (res == NULL)
         return -1;
-    if (res == Py_None) {
+    if (Py_IS_NONE(res)) {
         /* Non-blocking stream would have blocked. Special return code! */
         Py_DECREF(res);
         return -2;
@@ -1552,14 +1552,14 @@ _bufferedreader_read_all(buffered *self)
         Py_DECREF(readall);
         if (tmp == NULL)
             goto cleanup;
-        if (tmp != Py_None && !PyBytes_Check(tmp)) {
+        if (!Py_IS_NONE(tmp) && !PyBytes_Check(tmp)) {
             PyErr_SetString(PyExc_TypeError, "readall() should return bytes");
             goto cleanup;
         }
         if (current_size == 0) {
             res = tmp;
         } else {
-            if (tmp != Py_None) {
+            if (!Py_IS_NONE(tmp)) {
                 PyBytes_Concat(&data, tmp);
             }
             res = data;
@@ -1582,11 +1582,11 @@ _bufferedreader_read_all(buffered *self)
         data = PyObject_CallMethodNoArgs(self->raw, _PyIO_str_read);
         if (data == NULL)
             goto cleanup;
-        if (data != Py_None && !PyBytes_Check(data)) {
+        if (!Py_IS_NONE(data) && !PyBytes_Check(data)) {
             PyErr_SetString(PyExc_TypeError, "read() should return bytes");
             goto cleanup;
         }
-        if (data == Py_None || PyBytes_GET_SIZE(data) == 0) {
+        if (Py_IS_NONE(data) || PyBytes_GET_SIZE(data) == 0) {
             if (current_size == 0) {
                 res = data;
                 goto cleanup;
@@ -1834,7 +1834,7 @@ _bufferedwriter_raw_write(buffered *self, char *start, Py_ssize_t len)
     Py_DECREF(memobj);
     if (res == NULL)
         return -1;
-    if (res == Py_None) {
+    if (Py_IS_NONE(res)) {
         /* Non-blocking stream would have blocked. Special return code!
            Being paranoid we reset errno in case it is changed by code
            triggered by a decref.  errno is used by _set_BlockingIOError(). */

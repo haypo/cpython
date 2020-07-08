@@ -1538,7 +1538,7 @@ _multibytecodec_MultibyteStreamReader_read_impl(MultibyteStreamReaderObject *sel
 {
     Py_ssize_t size;
 
-    if (sizeobj == Py_None)
+    if (Py_IS_NONE(sizeobj))
         size = -1;
     else if (PyLong_Check(sizeobj))
         size = PyLong_AsSsize_t(sizeobj);
@@ -1567,7 +1567,7 @@ _multibytecodec_MultibyteStreamReader_readline_impl(MultibyteStreamReaderObject 
 {
     Py_ssize_t size;
 
-    if (sizeobj == Py_None)
+    if (Py_IS_NONE(sizeobj))
         size = -1;
     else if (PyLong_Check(sizeobj))
         size = PyLong_AsSsize_t(sizeobj);
@@ -1597,7 +1597,7 @@ _multibytecodec_MultibyteStreamReader_readlines_impl(MultibyteStreamReaderObject
     PyObject *r, *sr;
     Py_ssize_t sizehint;
 
-    if (sizehintobj == Py_None)
+    if (Py_IS_NONE(sizehintobj))
         sizehint = -1;
     else if (PyLong_Check(sizehintobj))
         sizehint = PyLong_AsSsize_t(sizehintobj);

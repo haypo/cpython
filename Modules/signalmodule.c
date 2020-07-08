@@ -1299,7 +1299,7 @@ signal_pidfd_send_signal_impl(PyObject *module, int pidfd, int signalnum,
 /*[clinic end generated code: output=2d59f04a75d9cbdf input=2a6543a1f4ac2000]*/
 
 {
-    if (siginfo != Py_None) {
+    if (!Py_IS_NONE(siginfo)) {
         PyErr_SetString(PyExc_TypeError, "siginfo must be None");
         return NULL;
     }
@@ -1685,7 +1685,7 @@ finisignal(void)
         func = Handlers[i].func;
         _Py_atomic_store_relaxed(&Handlers[i].tripped, 0);
         Handlers[i].func = NULL;
-        if (func != NULL && func != Py_None &&
+        if (func != NULL && !Py_IS_NONE(func) &&
             func != DefaultHandler && func != IgnoreHandler)
             PyOS_setsig(i, SIG_DFL);
         Py_XDECREF(func);

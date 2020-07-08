@@ -96,7 +96,7 @@ _PySSLContext_get_msg_callback(PySSLContext *self, void *c) {
 static int
 _PySSLContext_set_msg_callback(PySSLContext *self, PyObject *arg, void *c) {
     Py_CLEAR(self->msg_cb);
-    if (arg == Py_None) {
+    if (Py_IS_NONE(arg)) {
         SSL_CTX_set_msg_callback(self->ctx, NULL);
     }
     else {
@@ -188,7 +188,7 @@ _PySSLContext_set_keylog_filename(PySSLContext *self, PyObject *arg, void *c) {
         PySSL_END_ALLOW_THREADS
     }
 
-    if (arg == Py_None) {
+    if (Py_IS_NONE(arg)) {
         /* None disables the callback */
         return 0;
     }

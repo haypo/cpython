@@ -832,7 +832,7 @@ _fd_converter(PyObject *o, int *p)
 static int
 dir_fd_converter(PyObject *o, void *p)
 {
-    if (o == Py_None) {
+    if (Py_IS_NONE(o)) {
         *(int *)p = DEFAULT_DIR_FD;
         return 1;
     }
@@ -1030,7 +1030,7 @@ path_converter(PyObject *o, void *p)
     /* path->object owns a reference to the original object */
     Py_INCREF(o);
 
-    if ((o == Py_None) && path->nullable) {
+    if ((Py_IS_NONE(o)) && path->nullable) {
         path->wide = NULL;
 #ifdef MS_WINDOWS
         path->narrow = FALSE;
@@ -2154,7 +2154,7 @@ statresult_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
        st_?time might be set to None. Initialize it
        from the int slots.  */
     for (i = 7; i <= 9; i++) {
-        if (result->ob_item[i+3] == Py_None) {
+        if (Py_IS_NONE(result->ob_item[i+3])) {
             Py_DECREF(Py_None);
             Py_INCREF(result->ob_item[i]);
             result->ob_item[i+3] = result->ob_item[i];
@@ -4992,14 +4992,14 @@ os_utime_impl(PyObject *module, path_t *path, PyObject *times, PyObject *ns,
 
     memset(&utime, 0, sizeof(utime_t));
 
-    if (times != Py_None && ns) {
+    if (!Py_IS_NONE(times) && ns) {
         PyErr_SetString(PyExc_ValueError,
                      "utime: you may specify either 'times'"
                      " or 'ns' but not both");
         return NULL;
     }
 
-    if (times != Py_None) {
+    if (!Py_IS_NONE(times)) {
         time_t a_sec, m_sec;
         long a_nsec, m_nsec;
         if (!PyTuple_CheckExact(times) || (PyTuple_Size(times) != 2)) {
@@ -5565,7 +5565,7 @@ parse_posix_spawn_flags(PyObject *module, const char *func_name, PyObject *setpg
         if (!convert_sched_param(module, schedparam_obj, &schedparam)) {
             goto fail;
         }
-        if (py_schedpolicy != Py_None) {
+        if (!Py_IS_NONE(py_schedpolicy)) {
             int schedpolicy = _PyLong_AsInt(py_schedpolicy);
 
             if (schedpolicy == -1 && PyErr_Occurred()) {
@@ -5772,7 +5772,7 @@ py_posix_spawn(int use_posix_spawnp, PyObject *module, path_t *path, PyObject *a
         goto exit;
     }
 
-    if (file_actions != NULL && file_actions != Py_None) {
+    if (file_actions != NULL && !Py_IS_NONE(file_actions)) {
         /* There is a bug in old versions of glibc that makes some of the
          * helper functions for manipulating file actions not copy the provided
          * buffers. The problem is that posix_spawn_file_actions_addopen does not
@@ -9503,7 +9503,7 @@ done:
 
 #else
 #ifdef __linux__
-    if (offobj == Py_None) {
+    if (Py_IS_NONE(offobj)) {
         do {
             Py_BEGIN_ALLOW_THREADS
             ret = sendfile(out_fd, in_fd, NULL, count);
@@ -9969,14 +9969,14 @@ os_copy_file_range_impl(PyObject *module, int src, int dst, Py_ssize_t count,
         return NULL;
     }
 
-    if (offset_src != Py_None) {
+    if (!Py_IS_NONE(offset_src)) {
         if (!Py_off_t_converter(offset_src, &offset_src_val)) {
             return NULL;
         }
         p_offset_src = &offset_src_val;
     }
 
-    if (offset_dst != Py_None) {
+    if (!Py_IS_NONE(offset_dst)) {
         if (!Py_off_t_converter(offset_dst, &offset_dst_val)) {
             return NULL;
         }
