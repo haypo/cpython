@@ -26,10 +26,21 @@ _Py_IDENTIFIER(little);
 _Py_IDENTIFIER(big);
 
 /* convert a PyLong of size 1, 0 or -1 to an sdigit */
-#define MEDIUM_VALUE(x) (assert(-1 <= Py_SIZE(x) && Py_SIZE(x) <= 1),   \
-         Py_SIZE(x) < 0 ? -(sdigit)(x)->ob_digit[0] :   \
-             (Py_SIZE(x) == 0 ? (sdigit)0 :                             \
-              (sdigit)(x)->ob_digit[0]))
+static inline sdigit MEDIUM_VALUE(PyLongObject *x)
+{
+    x = (PyLongObject *)_Py_TAGPTR_UNBOX((PyObject*)x);
+    Py_ssize_t size = Py_SIZE(x);
+    assert(-1 <= size && size <= 1);
+    if (size == 0) {
+        return 0;
+    }
+    else if (size > 0) {
+        return (sdigit)x->ob_digit[0];
+    }
+    else {
+        return -(sdigit)x->ob_digit[0];
+    }
+}
 
 PyObject *_PyLong_Zero = NULL;
 PyObject *_PyLong_One = NULL;
