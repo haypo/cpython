@@ -1646,6 +1646,10 @@ _PySys_GetSizeOf(PyObject *o)
     Py_ssize_t size;
     PyThreadState *tstate = _PyThreadState_GET();
 
+    if (_Py_TAGPTR_IS_TAGGED(o)) {
+        return 0;
+    }
+
     /* Make sure the type is initialized. float gets initialized late */
     if (PyType_Ready(Py_TYPE(o)) < 0) {
         return (size_t)-1;
