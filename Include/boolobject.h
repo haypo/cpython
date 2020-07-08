@@ -28,6 +28,14 @@ PyAPI_DATA(struct _longobject) _Py_FalseStruct, _Py_TrueStruct;
 /* Function to return a bool from a C long */
 PyAPI_FUNC(PyObject *) PyBool_FromLong(long);
 
+static inline int Py_IS_TRUE(PyObject *op) {
+    return (op == Py_True);
+}
+
+static inline int Py_IS_FALSE(PyObject *op) {
+    return (op == Py_False);
+}
+
 #ifdef __cplusplus
 }
 #endif
