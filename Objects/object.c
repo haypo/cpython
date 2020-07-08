@@ -29,7 +29,7 @@ _Py_IDENTIFIER(__isabstractmethod__);
 static PyObject* _Py_TAGPTR_GET_SINGLETON(const PyObject *op)
 {
     assert(_Py_TAGPTR_TAG(op) == _Py_TAGPTR_SINGLETON);
-    switch (_Py_TAGPTR_VALUE((op))) {
+    switch (_Py_TAGPTR_VALUE(op)) {
     case _Py_TAGPTR_SINGLETON_NONE: return Py_None;
     case _Py_TAGPTR_SINGLETON_TRUE: return Py_True;
     case _Py_TAGPTR_SINGLETON_FALSE: return Py_False;
@@ -53,19 +53,53 @@ PyObject* _Py_TAGPTR_UNBOX(PyObject *op)
     }
 }
 
-PyTypeObject*
-_Py_TYPE(const PyObject *op)
+Py_ssize_t
+_Py_TAGPTR_SIZE(const PyObject *op)
 {
+    assert(_Py_TAGPTR_IS_TAGGED(op));
+    switch(_Py_TAGPTR_TAG(op))
+    {
+    case _Py_TAGPTR_INT:
+    {
+        int value = (int)_Py_TAGPTR_VALUE(op);
+        if (value > 0) {
+            return 1;
+        }
+        else if (value == 0) {
+            return 0;
+        }
+        else {
+            return -1;
+        }
+        break;
+    }
+    case _Py_TAGPTR_SINGLETON:
+        switch (_Py_TAGPTR_VALUE(op)) {
+        case _Py_TAGPTR_SINGLETON_TRUE: return 1;
+        case _Py_TAGPTR_SINGLETON_FALSE: return 0;
+        default: break;
+        }
+        break;
+
+    default:
+        break;
+    }
+    Py_UNREACHABLE();
+}
+
+
+PyTypeObject*
+_Py_TAGPTR_TYPE(const PyObject *op)
+{
+    assert(_Py_TAGPTR_IS_TAGGED(op));
     switch (_Py_TAGPTR_TAG(op)) {
-    case _Py_TAGPTR_UNTAGGED:
-        return op->ob_type;
+    case _Py_TAGPTR_INT:
+        return &PyLong_Type;
     case _Py_TAGPTR_SINGLETON:
     {
         PyObject *unboxed = _Py_TAGPTR_GET_SINGLETON(op);
         return unboxed->ob_type;
     }
-    case _Py_TAGPTR_INT:
-        return &PyLong_Type;
     default:
         Py_UNREACHABLE();
     }

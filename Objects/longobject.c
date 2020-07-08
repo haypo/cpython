@@ -28,18 +28,34 @@ _Py_IDENTIFIER(big);
 /* convert a PyLong of size 1, 0 or -1 to an sdigit */
 static inline sdigit MEDIUM_VALUE(PyLongObject *x)
 {
-    x = (PyLongObject *)_Py_TAGPTR_UNBOX((PyObject*)x);
-    Py_ssize_t size = Py_SIZE(x);
-    assert(-1 <= size && size <= 1);
-    if (size == 0) {
-        return 0;
+    switch(_Py_TAGPTR_TAG((PyObject*)x))
+    {
+    case _Py_TAGPTR_INT:
+        return (int)_Py_TAGPTR_VALUE((PyObject*)x);
+    case _Py_TAGPTR_SINGLETON:
+        switch (_Py_TAGPTR_VALUE((PyObject*)x)) {
+        case _Py_TAGPTR_SINGLETON_TRUE: return 1;
+        case _Py_TAGPTR_SINGLETON_FALSE: return 0;
+        default: break;
+        }
+        break;
+    case _Py_TAGPTR_UNTAGGED:
+        x = (PyLongObject *)_Py_TAGPTR_UNBOX((PyObject*)x);
+        Py_ssize_t size = Py_SIZE(x);
+        assert(-1 <= size && size <= 1);
+        if (size > 0) {
+            return (sdigit)x->ob_digit[0];
+        }
+        else if (size == 0) {
+            return 0;
+        }
+        else {
+            return -(sdigit)x->ob_digit[0];
+        }
+        break;
+    default: break;
     }
-    else if (size > 0) {
-        return (sdigit)x->ob_digit[0];
-    }
-    else {
-        return -(sdigit)x->ob_digit[0];
-    }
+    Py_UNREACHABLE();
 }
 
 PyObject *_PyLong_Zero = NULL;

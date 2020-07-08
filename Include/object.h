@@ -173,19 +173,31 @@ static inline Py_ssize_t _Py_REFCNT(const PyObject *ob) {
 #define Py_REFCNT(ob) _Py_REFCNT(_PyObject_CAST_CONST(ob))
 
 
-static inline Py_ssize_t _Py_SIZE(const PyVarObject *ob) {
-    if (!_Py_TAGPTR_IS_TAGGED((PyObject*)ob)) {
+PyAPI_FUNC(Py_ssize_t) _Py_TAGPTR_SIZE(const PyObject *op);
+
+static inline Py_ssize_t _Py_SIZE(const PyVarObject *ob)
+{
+    if (!_Py_TAGPTR_IS_TAGGED((const PyObject*)ob)) {
         return ob->ob_size;
     }
     else {
-        PyVarObject *unboxed = (PyVarObject *)_Py_TAGPTR_UNBOX((PyObject*)ob);
-        return unboxed->ob_size;
+        return _Py_TAGPTR_SIZE((const PyObject*)ob);
     }
 }
 #define Py_SIZE(ob) _Py_SIZE(_PyVarObject_CAST_CONST(ob))
 
 
-PyAPI_DATA(PyTypeObject*) _Py_TYPE(const PyObject *ob);
+PyAPI_FUNC(PyTypeObject*) _Py_TAGPTR_TYPE(const PyObject *op);
+
+static inline PyTypeObject* _Py_TYPE(const PyObject *ob)
+{
+    if (!_Py_TAGPTR_IS_TAGGED(ob)) {
+        return ob->ob_type;
+    }
+    else {
+        return _Py_TAGPTR_TYPE(ob);
+    }
+}
 #define Py_TYPE(ob) _Py_TYPE(_PyObject_CAST_CONST(ob))
 
 
