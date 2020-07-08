@@ -2441,8 +2441,8 @@ check_is_arg(expr_ty e)
     }
     PyObject *value = e->v.Constant.value;
     return (Py_IS_NONE(value)
-         || value == Py_False
-         || value == Py_True
+         || Py_IS_FALSE(value)
+         || Py_IS_TRUE(value)
          || value == Py_Ellipsis);
 }
 

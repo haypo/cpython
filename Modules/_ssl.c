@@ -5732,7 +5732,7 @@ _ssl_enum_certificates_impl(PyObject *module, const char *store_name)
             break;
         }
         keyusage = parseKeyUsage(pCertCtx, CERT_FIND_PROP_ONLY_ENHKEY_USAGE_FLAG);
-        if (keyusage == Py_True) {
+        if (Py_IS_TRUE(keyusage)) {
             Py_DECREF(keyusage);
             keyusage = parseKeyUsage(pCertCtx, CERT_FIND_EXT_ONLY_ENHKEY_USAGE_FLAG);
         }

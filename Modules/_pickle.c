@@ -2058,7 +2058,7 @@ static int
 save_bool(PicklerObject *self, PyObject *obj)
 {
     if (self->proto >= 2) {
-        const char bool_op = (obj == Py_True) ? NEWTRUE : NEWFALSE;
+        const char bool_op = (Py_IS_TRUE(obj)) ? NEWTRUE : NEWFALSE;
         if (_Pickler_Write(self, &bool_op, 1) < 0)
             return -1;
     }
@@ -2068,7 +2068,7 @@ save_bool(PicklerObject *self, PyObject *obj)
          * as ints, but unpicklers after can recognize that bools were intended.
          * Note that protocol 2 added direct ways to pickle bools.
          */
-        const char *bool_str = (obj == Py_True) ? "I01\n" : "I00\n";
+        const char *bool_str = (Py_IS_TRUE(obj)) ? "I01\n" : "I00\n";
         if (_Pickler_Write(self, bool_str, strlen(bool_str)) < 0)
             return -1;
     }
@@ -4290,7 +4290,7 @@ save(PicklerObject *self, PyObject *obj, int pers_save)
     if (Py_IS_NONE(obj)) {
         return save_none(self, obj);
     }
-    else if (obj == Py_False || obj == Py_True) {
+    else if (Py_IS_FALSE(obj) || Py_IS_TRUE(obj)) {
         return save_bool(self, obj);
     }
     else if (type == &PyLong_Type) {
@@ -5203,7 +5203,7 @@ load_int(UnpicklerObject *self)
 static int
 load_bool(UnpicklerObject *self, PyObject *boolean)
 {
-    assert(boolean == Py_True || boolean == Py_False);
+    assert(Py_IS_TRUE(boolean) || Py_IS_FALSE(boolean));
     PDATA_APPEND(self->stack, boolean, -1);
     return 0;
 }

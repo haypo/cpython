@@ -1315,7 +1315,7 @@ _encoded_const(PyObject *obj)
         Py_XINCREF(s_null);
         return s_null;
     }
-    else if (obj == Py_True) {
+    else if (Py_IS_TRUE(obj)) {
         static PyObject *s_true = NULL;
         if (s_true == NULL) {
             s_true = PyUnicode_InternFromString("true");
@@ -1323,7 +1323,7 @@ _encoded_const(PyObject *obj)
         Py_XINCREF(s_true);
         return s_true;
     }
-    else if (obj == Py_False) {
+    else if (Py_IS_FALSE(obj)) {
         static PyObject *s_false = NULL;
         if (s_false == NULL) {
             s_false = PyUnicode_InternFromString("false");
@@ -1400,7 +1400,7 @@ encoder_listencode_obj(PyEncoderObject *s, _PyAccu *acc,
     PyObject *newobj;
     int rv;
 
-    if (Py_IS_NONE(obj) || obj == Py_True || obj == Py_False) {
+    if (Py_IS_NONE(obj) || Py_IS_TRUE(obj) || Py_IS_FALSE(obj)) {
         PyObject *cstr = _encoded_const(obj);
         if (cstr == NULL)
             return -1;
@@ -1570,7 +1570,7 @@ encoder_listencode_dict(PyEncoderObject *s, _PyAccu *acc,
             if (kstr == NULL)
                 goto bail;
         }
-        else if (key == Py_True || key == Py_False || Py_IS_NONE(key)) {
+        else if (Py_IS_TRUE(key) || Py_IS_FALSE(key) || Py_IS_NONE(key)) {
                         /* This must come before the PyLong_Check because
                            True and False are also 1 and 0.*/
             kstr = _encoded_const(key);

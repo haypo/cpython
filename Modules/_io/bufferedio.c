@@ -2250,7 +2250,7 @@ bufferedrwpair_isatty(rwpair *self, PyObject *Py_UNUSED(ignored))
 {
     PyObject *ret = _forward_call(self->writer, &PyId_isatty, NULL);
 
-    if (ret != Py_False) {
+    if (!Py_IS_FALSE(ret)) {
         /* either True or exception */
         return ret;
     }

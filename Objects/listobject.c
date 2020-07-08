@@ -2041,7 +2041,7 @@ unsafe_object_compare(PyObject *v, PyObject *w, MergeState *ms)
         return -1;
 
     if (PyBool_Check(res_obj)) {
-        res = (res_obj == Py_True);
+        res = (Py_IS_TRUE(res_obj));
     }
     else {
         res = PyObject_IsTrue(res_obj);

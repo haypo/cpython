@@ -48,10 +48,10 @@ _opcode_stack_effect_impl(PyObject *module, int opcode, PyObject *oparg,
     if (Py_IS_NONE(jump)) {
         jump_int = -1;
     }
-    else if (jump == Py_True) {
+    else if (Py_IS_TRUE(jump)) {
         jump_int = 1;
     }
-    else if (jump == Py_False) {
+    else if (Py_IS_FALSE(jump)) {
         jump_int = 0;
     }
     else {

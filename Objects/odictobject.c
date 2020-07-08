@@ -1536,9 +1536,9 @@ odict_richcompare(PyObject *v, PyObject *w, int op)
             return NULL;
         if (!PyODict_Check(w))
             return cmp;
-        if (op == Py_EQ && cmp == Py_False)
+        if (op == Py_EQ && Py_IS_FALSE(cmp))
             return cmp;
-        if (op == Py_NE && cmp == Py_True)
+        if (op == Py_NE && Py_IS_TRUE(cmp))
             return cmp;
         Py_DECREF(cmp);
 

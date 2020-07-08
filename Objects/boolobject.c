@@ -13,7 +13,7 @@ bool_repr(PyObject *self)
 {
     PyObject *s;
 
-    if (self == Py_True)
+    if (Py_IS_TRUE(self))
         s = true_str ? true_str :
             (true_str = PyUnicode_InternFromString("True"));
     else
@@ -62,7 +62,7 @@ bool_and(PyObject *a, PyObject *b)
 {
     if (!PyBool_Check(a) || !PyBool_Check(b))
         return PyLong_Type.tp_as_number->nb_and(a, b);
-    return PyBool_FromLong((a == Py_True) & (b == Py_True));
+    return PyBool_FromLong((Py_IS_TRUE(a)) & (Py_IS_TRUE(b)));
 }
 
 static PyObject *
@@ -70,7 +70,7 @@ bool_or(PyObject *a, PyObject *b)
 {
     if (!PyBool_Check(a) || !PyBool_Check(b))
         return PyLong_Type.tp_as_number->nb_or(a, b);
-    return PyBool_FromLong((a == Py_True) | (b == Py_True));
+    return PyBool_FromLong((Py_IS_TRUE(a)) | (Py_IS_TRUE(b)));
 }
 
 static PyObject *
@@ -78,7 +78,7 @@ bool_xor(PyObject *a, PyObject *b)
 {
     if (!PyBool_Check(a) || !PyBool_Check(b))
         return PyLong_Type.tp_as_number->nb_xor(a, b);
-    return PyBool_FromLong((a == Py_True) ^ (b == Py_True));
+    return PyBool_FromLong((Py_IS_TRUE(a)) ^ (Py_IS_TRUE(b)));
 }
 
 /* Doc string */

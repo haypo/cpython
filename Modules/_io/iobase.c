@@ -203,7 +203,7 @@ _PyIOBase_check_closed(PyObject *self, PyObject *args)
     if (iobase_check_closed(self)) {
         return NULL;
     }
-    if (args == Py_True) {
+    if (Py_IS_TRUE(args)) {
         return Py_None;
     }
     Py_RETURN_NONE;
@@ -384,12 +384,12 @@ _PyIOBase_check_seekable(PyObject *self, PyObject *args)
     PyObject *res  = PyObject_CallMethodNoArgs(self, _PyIO_str_seekable);
     if (res == NULL)
         return NULL;
-    if (res != Py_True) {
+    if (!Py_IS_TRUE(res)) {
         Py_CLEAR(res);
         iobase_unsupported("File or stream is not seekable.");
         return NULL;
     }
-    if (args == Py_True) {
+    if (Py_IS_TRUE(args)) {
         Py_DECREF(res);
     }
     return res;
@@ -417,12 +417,12 @@ _PyIOBase_check_readable(PyObject *self, PyObject *args)
     PyObject *res = PyObject_CallMethodNoArgs(self, _PyIO_str_readable);
     if (res == NULL)
         return NULL;
-    if (res != Py_True) {
+    if (!Py_IS_TRUE(res)) {
         Py_CLEAR(res);
         iobase_unsupported("File or stream is not readable.");
         return NULL;
     }
-    if (args == Py_True) {
+    if (Py_IS_TRUE(args)) {
         Py_DECREF(res);
     }
     return res;
@@ -450,12 +450,12 @@ _PyIOBase_check_writable(PyObject *self, PyObject *args)
     PyObject *res = PyObject_CallMethodNoArgs(self, _PyIO_str_writable);
     if (res == NULL)
         return NULL;
-    if (res != Py_True) {
+    if (!Py_IS_TRUE(res)) {
         Py_CLEAR(res);
         iobase_unsupported("File or stream is not writable.");
         return NULL;
     }
-    if (args == Py_True) {
+    if (Py_IS_TRUE(args)) {
         Py_DECREF(res);
     }
     return res;

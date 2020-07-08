@@ -129,7 +129,7 @@ PyMember_SetOne(char *addr, PyMemberDef *l, PyObject *v)
                             "attribute value type must be bool");
             return -1;
         }
-        if (v == Py_True)
+        if (Py_IS_TRUE(v))
             *(char*)addr = (char) 1;
         else
             *(char*)addr = (char) 0;

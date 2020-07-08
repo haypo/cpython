@@ -207,10 +207,10 @@ _PyPegen_get_expr_name(expr_ty e)
             if (Py_IS_NONE(value)) {
                 return "None";
             }
-            if (value == Py_False) {
+            if (Py_IS_FALSE(value)) {
                 return "False";
             }
-            if (value == Py_True) {
+            if (Py_IS_TRUE(value)) {
                 return "True";
             }
             if (value == Py_Ellipsis) {

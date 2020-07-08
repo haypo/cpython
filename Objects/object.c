@@ -747,7 +747,7 @@ PyObject_RichCompareBool(PyObject *v, PyObject *w, int op)
     if (res == NULL)
         return -1;
     if (PyBool_Check(res))
-        ok = (res == Py_True);
+        ok = (Py_IS_TRUE(res));
     else
         ok = PyObject_IsTrue(res);
     Py_DECREF(res);
@@ -1394,9 +1394,9 @@ int
 PyObject_IsTrue(PyObject *v)
 {
     Py_ssize_t res;
-    if (v == Py_True)
+    if (Py_IS_TRUE(v))
         return 1;
-    if (v == Py_False)
+    if (Py_IS_FALSE(v))
         return 0;
     if (Py_IS_NONE(v))
         return 0;

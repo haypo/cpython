@@ -2727,7 +2727,7 @@ staticarray_init(PyObject *self, PyObject *args, PyObject *kwds)
     if (!PyArg_ParseTupleAndKeywords(args, kwds, "|O", kwlist, &legacy_mode))
         return -1;
 
-    a->legacy_mode = (legacy_mode != Py_False);
+    a->legacy_mode = (!Py_IS_FALSE(legacy_mode));
     return 0;
 }
 

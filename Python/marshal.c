@@ -357,10 +357,10 @@ w_object(PyObject *v, WFILE *p)
     else if (v == Py_Ellipsis) {
         w_byte(TYPE_ELLIPSIS, p);
     }
-    else if (v == Py_False) {
+    else if (Py_IS_FALSE(v)) {
         w_byte(TYPE_FALSE, p);
     }
-    else if (v == Py_True) {
+    else if (Py_IS_TRUE(v)) {
         w_byte(TYPE_TRUE, p);
     }
     else if (!w_ref(v, &flag, p))

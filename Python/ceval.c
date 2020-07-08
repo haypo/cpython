@@ -3199,11 +3199,11 @@ main_loop:
             PREDICTED(POP_JUMP_IF_FALSE);
             PyObject *cond = POP();
             int err;
-            if (cond == Py_True) {
+            if (Py_IS_TRUE(cond)) {
                 Py_DECREF(cond);
                 FAST_DISPATCH();
             }
-            if (cond == Py_False) {
+            if (Py_IS_FALSE(cond)) {
                 Py_DECREF(cond);
                 JUMPTO(oparg);
                 FAST_DISPATCH();
@@ -3223,11 +3223,11 @@ main_loop:
             PREDICTED(POP_JUMP_IF_TRUE);
             PyObject *cond = POP();
             int err;
-            if (cond == Py_False) {
+            if (Py_IS_FALSE(cond)) {
                 Py_DECREF(cond);
                 FAST_DISPATCH();
             }
-            if (cond == Py_True) {
+            if (Py_IS_TRUE(cond)) {
                 Py_DECREF(cond);
                 JUMPTO(oparg);
                 FAST_DISPATCH();
@@ -3247,12 +3247,12 @@ main_loop:
         case TARGET(JUMP_IF_FALSE_OR_POP): {
             PyObject *cond = TOP();
             int err;
-            if (cond == Py_True) {
+            if (Py_IS_TRUE(cond)) {
                 STACK_SHRINK(1);
                 Py_DECREF(cond);
                 FAST_DISPATCH();
             }
-            if (cond == Py_False) {
+            if (Py_IS_FALSE(cond)) {
                 JUMPTO(oparg);
                 FAST_DISPATCH();
             }
@@ -3271,12 +3271,12 @@ main_loop:
         case TARGET(JUMP_IF_TRUE_OR_POP): {
             PyObject *cond = TOP();
             int err;
-            if (cond == Py_False) {
+            if (Py_IS_FALSE(cond)) {
                 STACK_SHRINK(1);
                 Py_DECREF(cond);
                 FAST_DISPATCH();
             }
-            if (cond == Py_True) {
+            if (Py_IS_TRUE(cond)) {
                 JUMPTO(oparg);
                 FAST_DISPATCH();
             }

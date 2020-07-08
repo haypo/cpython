@@ -436,7 +436,7 @@ ga_richcompare(PyObject *a, PyObject *b, int op)
         if (eq == NULL)
             return NULL;
         Py_DECREF(eq);
-        if (eq == Py_True) {
+        if (Py_IS_TRUE(eq)) {
             Py_RETURN_FALSE;
         }
         else {
