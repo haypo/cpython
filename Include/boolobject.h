@@ -28,12 +28,16 @@ PyAPI_DATA(struct _longobject) _Py_FalseStruct, _Py_TrueStruct;
 /* Function to return a bool from a C long */
 PyAPI_FUNC(PyObject *) PyBool_FromLong(long);
 
+#define _Py_TAGPTR_TRUE _Py_TAGPTR_TAGGED(_Py_TAGPTR_SINGLETON, _Py_TAGPTR_SINGLETON_TRUE)
+
 static inline int Py_IS_TRUE(PyObject *op) {
-    return (op == Py_True);
+    return (op == Py_True || op == _Py_TAGPTR_TRUE);
 }
 
+#define _Py_TAGPTR_FALSE _Py_TAGPTR_TAGGED(_Py_TAGPTR_SINGLETON, _Py_TAGPTR_SINGLETON_FALSE)
+
 static inline int Py_IS_FALSE(PyObject *op) {
-    return (op == Py_False);
+    return (op == Py_False || op == _Py_TAGPTR_FALSE);
 }
 
 #ifdef __cplusplus
