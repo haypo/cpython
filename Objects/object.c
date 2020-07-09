@@ -47,7 +47,7 @@ PyObject* _Py_TAGPTR_UNBOX(PyObject *op)
     case _Py_TAGPTR_SINGLETON:
         return _Py_TAGPTR_GET_SINGLETON(op);
     case _Py_TAGPTR_INT:
-        return _Py_GetSmallInt((int)_Py_TAGPTR_VALUE(op));
+        return _Py_GetSmallInt(_Py_TAGPTR_INT_VALUE(op));
     default:
         Py_UNREACHABLE();
     }
@@ -61,7 +61,7 @@ _Py_TAGPTR_SIZE(const PyObject *op)
     {
     case _Py_TAGPTR_INT:
     {
-        int value = (int)_Py_TAGPTR_VALUE(op);
+        int value = _Py_TAGPTR_INT_VALUE(op);
         if (value > 0) {
             return 1;
         }

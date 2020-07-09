@@ -31,7 +31,7 @@ static inline sdigit MEDIUM_VALUE(PyLongObject *x)
     switch(_Py_TAGPTR_TAG((PyObject*)x))
     {
     case _Py_TAGPTR_INT:
-        return (int)_Py_TAGPTR_VALUE((PyObject*)x);
+        return _Py_TAGPTR_INT_VALUE((PyObject*)x);
     case _Py_TAGPTR_SINGLETON:
         switch (_Py_TAGPTR_VALUE((PyObject*)x)) {
         case _Py_TAGPTR_SINGLETON_TRUE: return 1;
@@ -68,7 +68,7 @@ PyObject *_PyLong_One = NULL;
 static PyObject *
 get_small_int(sdigit ival)
 {
-    return _Py_TAGPTR_TAGGED(_Py_TAGPTR_INT, ival);
+    return _Py_TAGPTR_Int(ival);
 }
 
 PyObject *

@@ -134,8 +134,16 @@ typedef enum _Py_TAGPTR_Tag {
 
 static inline PyObject* _Py_TAGPTR_TAGGED(_Py_TAGPTR_Tag tag, uintptr_t value)
 {
+    assert(value <= (UINTPTR_MAX >> _Py_TAGPTR_SHIFT));
     value = (value << _Py_TAGPTR_SHIFT) | (uintptr_t)tag;
     return (PyObject*)value;
+}
+
+static inline PyObject* _Py_TAGPTR_Int(int value)
+{
+    uintptr_t uval = (uintptr_t)value;
+    uval = (uval << _Py_TAGPTR_SHIFT) | (uintptr_t)_Py_TAGPTR_INT;
+    return (PyObject*)uval;
 }
 
 typedef enum _Py_TAGPTR_Singleton {
@@ -157,6 +165,11 @@ static inline uintptr_t _Py_TAGPTR_VALUE(const PyObject *op) {
     assert(_Py_TAGPTR_IS_TAGGED(op));
     return (uintptr_t)op >> _Py_TAGPTR_SHIFT;
 }
+
+static inline int _Py_TAGPTR_INT_VALUE(const PyObject *op) {
+    return (int)_Py_TAGPTR_VALUE(op);
+}
+
 
 PyAPI_FUNC(PyObject*) _Py_TAGPTR_UNBOX(PyObject *op);
 
