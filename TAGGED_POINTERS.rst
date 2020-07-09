@@ -1,4 +1,4 @@
-CPython fork reference: commit b26a0db8ea2de3a8a8e4b40e69fc8642c7d7cb68
+CPython fork reference: commit b26a0db8ea2de3a8a8e4b40e69fc8642c7d7cb68.
 
 
 Memory Usage
@@ -46,25 +46,37 @@ Result::
 Benchmark
 =========
 
-tagged_ptr branch at commit b5dc3a5a7fe649505c5f6938437a16fdde76c9e5
-("Optimize Py_SIZE(), Py_TYPE(), MEDIUM_VALUE()"), compared to reference
-commit b26a0db8ea2de3a8a8e4b40e69fc8642c7d7cb68.
+Results using the commit b26a0db8ea2de3a8a8e4b40e69fc8642c7d7cb68
+as the reference.
 
-Build Python::
+Run benchmark::
 
-    ./configure --with-lto && make
-    ./python -m venv env && env/bin/python -m pip install pyperf
+    # edit run_bench.sh to update BENCHS path
+    ./run_bench.sh
 
-Results.
+Results at commit d7348e0aad "longobject.c get_tagged_value()":
+
++-----------+---------+------------------------------+
+| Benchmark | ref     | tagptr                       |
++===========+=========+==============================+
+| deltablue | 10.8 ms | 12.3 ms: 1.13x slower (+13%) |
++-----------+---------+------------------------------+
+| go        | 364 ms  | 400 ms: 1.10x slower (+10%)  |
++-----------+---------+------------------------------+
+| telco     | 8.49 ms | 9.44 ms: 1.11x slower (+11%) |
++-----------+---------+------------------------------+
+
+Results at commit b5dc3a5a7fe649505c5f6938437a16fdde76c9e5
+("Optimize Py_SIZE(), Py_TYPE(), MEDIUM_VALUE()").
 
 +-----------+---------+-----------------------------+
 | Benchmark | ref     | tagptr                      |
 +===========+=========+=============================+
-| telco     | 8.18 ms | 8.77 ms: 1.07x slower (+7%) |
+| deltablue | 10.9 ms | 11.8 ms: 1.08x slower (+8%) |
 +-----------+---------+-----------------------------+
 | go        | 346 ms  | 398 ms: 1.15x slower (+15%) |
 +-----------+---------+-----------------------------+
-| deltablue | 10.9 ms | 11.8 ms: 1.08x slower (+8%) |
+| telco     | 8.18 ms | 8.77 ms: 1.07x slower (+7%) |
 +-----------+---------+-----------------------------+
 
 
