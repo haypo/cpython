@@ -58,6 +58,9 @@ static inline sdigit MEDIUM_VALUE(PyLongObject *x)
     Py_UNREACHABLE();
 }
 
+#define TAGGED_ZERO _Py_TAGPTR_Int(0)
+#define TAGGED_ONE _Py_TAGPTR_Int(1)
+
 PyObject *_PyLong_Zero = NULL;
 PyObject *_PyLong_One = NULL;
 
@@ -70,15 +73,6 @@ get_small_int(sdigit ival)
 {
     return _Py_TAGPTR_Int(ival);
 }
-
-PyObject *
-_Py_GetSmallInt(int ival)
-{
-    assert(IS_SMALL_INT(ival));
-    PyInterpreterState *interp = _PyInterpreterState_GET();
-    return (PyObject*)interp->small_ints[ival + NSMALLNEGINTS];
-}
-
 
 static PyLongObject *
 maybe_small_long(PyLongObject *v)
@@ -2605,8 +2599,7 @@ long_divrem(PyLongObject *a, PyLongObject *b,
         if (*prem == NULL) {
             return -1;
         }
-        Py_INCREF(_PyLong_Zero);
-        *pdiv = (PyLongObject*)_PyLong_Zero;
+        *pdiv = (PyLongObject*)TAGGED_ZERO;
         return 0;
     }
     if (size_b == 1) {
@@ -3728,7 +3721,7 @@ l_divmod(PyLongObject *v, PyLongObject *w,
             Py_DECREF(div);
             return -1;
         }
-        temp = (PyLongObject *) long_sub(div, (PyLongObject *)_PyLong_One);
+        temp = (PyLongObject *) long_sub(div, (PyLongObject *)TAGGED_ONE);
         if (temp == NULL) {
             Py_DECREF(mod);
             Py_DECREF(div);
@@ -4145,7 +4138,7 @@ long_invmod(PyLongObject *a, PyLongObject *n)
 
     Py_DECREF(c);
     Py_DECREF(n);
-    if (long_compare(a, (PyLongObject *)_PyLong_One)) {
+    if (long_compare(a, (PyLongObject *)TAGGED_ONE)) {
         /* a != 1; we don't have an inverse. */
         Py_DECREF(a);
         Py_DECREF(b);
@@ -4384,7 +4377,7 @@ long_invert(PyLongObject *v)
     PyLongObject *x;
     if (Py_ABS(Py_SIZE(v)) <=1)
         return PyLong_FromLong(-(MEDIUM_VALUE(v)+1));
-    x = (PyLongObject *) long_add(v, (PyLongObject *)_PyLong_One);
+    x = (PyLongObject *) long_add(v, (PyLongObject *)TAGGED_ONE);
     if (x == NULL)
         return NULL;
     _PyLong_Negate(&x);
@@ -5199,7 +5192,7 @@ _PyLong_DivmodNear(PyObject *a, PyObject *b)
 
     /* compare twice the remainder with the divisor, to see
        if we need to adjust the quotient and remainder */
-    twice_rem = long_lshift((PyObject *)rem, _PyLong_One);
+    twice_rem = long_lshift((PyObject *)rem, TAGGED_ONE);
     if (twice_rem == NULL)
         goto error;
     if (quo_is_neg) {
@@ -5218,9 +5211,9 @@ _PyLong_DivmodNear(PyObject *a, PyObject *b)
     if ((Py_SIZE(b) < 0 ? cmp < 0 : cmp > 0) || (cmp == 0 && quo_is_odd)) {
         /* fix up quotient */
         if (quo_is_neg)
-            temp = long_sub(quo, (PyLongObject *)_PyLong_One);
+            temp = long_sub(quo, (PyLongObject *)TAGGED_ONE);
         else
-            temp = long_add(quo, (PyLongObject *)_PyLong_One);
+            temp = long_add(quo, (PyLongObject *)TAGGED_ONE);
         Py_DECREF(quo);
         quo = (PyLongObject *)temp;
         if (quo == NULL)
@@ -5505,7 +5498,7 @@ int_as_integer_ratio_impl(PyObject *self)
     if (numerator == NULL) {
         return NULL;
     }
-    ratio_tuple = PyTuple_Pack(2, numerator, _PyLong_One);
+    ratio_tuple = PyTuple_Pack(2, numerator, TAGGED_ONE);
     Py_DECREF(numerator);
     return ratio_tuple;
 }

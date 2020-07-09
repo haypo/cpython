@@ -37,17 +37,24 @@ static PyObject* _Py_TAGPTR_GET_SINGLETON(const PyObject *op)
     }
 }
 
+static PyObject *
+get_small_int(int ival)
+{
+    assert(-_PY_NSMALLNEGINTS <= ival && ival < _PY_NSMALLPOSINTS);
+    PyInterpreterState *interp = _PyInterpreterState_GET();
+    return (PyObject*)interp->small_ints[ival + _PY_NSMALLNEGINTS];
+}
+
+
 PyObject* _Py_TAGPTR_UNBOX(PyObject *op)
 {
-    extern PyObject* _Py_GetSmallInt(int ival);
-
     switch (_Py_TAGPTR_TAG(op)) {
     case _Py_TAGPTR_UNTAGGED:
         return op;
     case _Py_TAGPTR_SINGLETON:
         return _Py_TAGPTR_GET_SINGLETON(op);
     case _Py_TAGPTR_INT:
-        return _Py_GetSmallInt(_Py_TAGPTR_INT_VALUE(op));
+        return get_small_int(_Py_TAGPTR_INT_VALUE(op));
     default:
         Py_UNREACHABLE();
     }
