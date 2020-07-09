@@ -1717,15 +1717,15 @@ main_loop:
                http://bugs.python.org/issue10044 for the discussion. In short,
                no patch shown any impact on a realistic benchmark, only a minor
                speedup on microbenchmarks. */
-            if (_Py_TAGPTR_TAG(left) == _Py_TAGPTR_INT
-                     && _Py_TAGPTR_TAG(right) == _Py_TAGPTR_INT) {
+            if (_Py_TAGPTR_TAG(left) == _Py_TAGPTR_TAG_INT
+                     && _Py_TAGPTR_TAG(right) == _Py_TAGPTR_TAG_INT) {
                 int a = _Py_TAGPTR_INT_VALUE(left);
                 int b = _Py_TAGPTR_INT_VALUE(right);
                 // a+b cannot overflow: a and b are in the
                 // [-_PY_NSMALLPOSINTS; _PY_NSMALLPOSINTS] range
                 int c = a + b;
                 if (-_PY_NSMALLNEGINTS <= c && c < _PY_NSMALLPOSINTS) {
-                    sum = _Py_TAGPTR_Int(c);
+                    sum = _Py_TAGPTR_INT(c);
                 }
                 else {
                     sum = PyNumber_Add(left, right);

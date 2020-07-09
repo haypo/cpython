@@ -30,16 +30,13 @@ static inline sdigit MEDIUM_VALUE(PyLongObject *x)
 {
     switch(_Py_TAGPTR_TAG((PyObject*)x))
     {
-    case _Py_TAGPTR_INT:
+    case _Py_TAGPTR_TAG_INT:
         return _Py_TAGPTR_INT_VALUE((PyObject*)x);
-    case _Py_TAGPTR_SINGLETON:
-        switch (_Py_TAGPTR_VALUE((PyObject*)x)) {
-        case _Py_TAGPTR_SINGLETON_TRUE: return 1;
-        case _Py_TAGPTR_SINGLETON_FALSE: return 0;
-        default: break;
-        }
-        break;
-    case _Py_TAGPTR_UNTAGGED:
+    case _Py_TAGPTR_TAG_TRUE:
+        return 1;
+    case _Py_TAGPTR_TAG_FALSE:
+        return 0;
+    case _Py_TAGPTR_TAG_UNTAGGED:
         x = (PyLongObject *)_Py_TAGPTR_UNBOX((PyObject*)x);
         Py_ssize_t size = Py_SIZE(x);
         assert(-1 <= size && size <= 1);
@@ -58,8 +55,8 @@ static inline sdigit MEDIUM_VALUE(PyLongObject *x)
     Py_UNREACHABLE();
 }
 
-#define TAGGED_ZERO _Py_TAGPTR_Int(0)
-#define TAGGED_ONE _Py_TAGPTR_Int(1)
+#define TAGGED_ZERO _Py_TAGPTR_INT(0)
+#define TAGGED_ONE _Py_TAGPTR_INT(1)
 
 PyObject *_PyLong_Zero = NULL;
 PyObject *_PyLong_One = NULL;
@@ -71,7 +68,7 @@ PyObject *_PyLong_One = NULL;
 static PyObject *
 get_small_int(sdigit ival)
 {
-    return _Py_TAGPTR_Int(ival);
+    return _Py_TAGPTR_INT(ival);
 }
 
 static PyLongObject *

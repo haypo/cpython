@@ -127,9 +127,11 @@ typedef struct {
 #define _Py_TAGPTR_SHIFT 3
 
 typedef enum _Py_TAGPTR_Tag {
-    _Py_TAGPTR_UNTAGGED=0,
-    _Py_TAGPTR_SINGLETON=1,
-    _Py_TAGPTR_INT=2,
+    _Py_TAGPTR_TAG_UNTAGGED=0,
+    _Py_TAGPTR_TAG_NONE=1,
+    _Py_TAGPTR_TAG_TRUE=2,
+    _Py_TAGPTR_TAG_FALSE=3,
+    _Py_TAGPTR_TAG_INT=4,
 } _Py_TAGPTR_Tag;
 
 static inline PyObject* _Py_TAGPTR_TAGGED(_Py_TAGPTR_Tag tag, uintptr_t value)
@@ -139,18 +141,12 @@ static inline PyObject* _Py_TAGPTR_TAGGED(_Py_TAGPTR_Tag tag, uintptr_t value)
     return (PyObject*)value;
 }
 
-static inline PyObject* _Py_TAGPTR_Int(int value)
+static inline PyObject* _Py_TAGPTR_INT(int value)
 {
     uintptr_t uval = (uintptr_t)value;
-    uval = (uval << _Py_TAGPTR_SHIFT) | (uintptr_t)_Py_TAGPTR_INT;
+    uval = (uval << _Py_TAGPTR_SHIFT) | (uintptr_t)_Py_TAGPTR_TAG_INT;
     return (PyObject*)uval;
 }
-
-typedef enum _Py_TAGPTR_Singleton {
-    _Py_TAGPTR_SINGLETON_NONE=0,
-    _Py_TAGPTR_SINGLETON_TRUE,
-    _Py_TAGPTR_SINGLETON_FALSE
-} _Py_TAGPTR_Singleton;
 
 
 static inline _Py_TAGPTR_Tag _Py_TAGPTR_TAG(const PyObject *op) {
@@ -158,7 +154,7 @@ static inline _Py_TAGPTR_Tag _Py_TAGPTR_TAG(const PyObject *op) {
 }
 
 static inline int _Py_TAGPTR_IS_TAGGED(const PyObject *op) {
-    return (_Py_TAGPTR_TAG(op) != _Py_TAGPTR_UNTAGGED);
+    return (_Py_TAGPTR_TAG(op) != _Py_TAGPTR_TAG_UNTAGGED);
 }
 
 static inline uintptr_t _Py_TAGPTR_VALUE(const PyObject *op) {
@@ -179,7 +175,9 @@ static inline Py_ssize_t _Py_REFCNT(const PyObject *ob) {
         return ob->ob_refcnt;
     }
     else {
-        // Tagged pointers are immutable: pretent and refcnt is always 2
+        // Tagged pointers are immutable: pretent that their reference counter
+        // is always 2. Some functions modify objects in-place if their
+        // reference counter is equal to 1.
         return 2;
     }
 }
@@ -619,7 +617,7 @@ Don't forget to apply Py_INCREF() when returning this value!!!
 */
 PyAPI_DATA(PyObject) _Py_NoneStruct; /* Don't use this directly */
 
-#define _Py_TAGPTR_NONE _Py_TAGPTR_TAGGED(_Py_TAGPTR_SINGLETON, _Py_TAGPTR_SINGLETON_NONE)
+#define _Py_TAGPTR_NONE ((PyObject*)(uintptr_t)_Py_TAGPTR_TAG_NONE)
 
 #define Py_None _Py_TAGPTR_NONE
 

@@ -20,8 +20,8 @@ PyAPI_DATA(struct _longobject) _Py_FalseStruct, _Py_TrueStruct;
 /* Function to return a bool from a C long */
 PyAPI_FUNC(PyObject *) PyBool_FromLong(long);
 
-#define _Py_TAGPTR_TRUE _Py_TAGPTR_TAGGED(_Py_TAGPTR_SINGLETON, _Py_TAGPTR_SINGLETON_TRUE)
-#define _Py_TAGPTR_FALSE _Py_TAGPTR_TAGGED(_Py_TAGPTR_SINGLETON, _Py_TAGPTR_SINGLETON_FALSE)
+#define _Py_TAGPTR_TRUE ((PyObject*)(uintptr_t)_Py_TAGPTR_TAG_TRUE)
+#define _Py_TAGPTR_FALSE ((PyObject*)(uintptr_t)_Py_TAGPTR_TAG_FALSE)
 
 /* Use these macros */
 #define Py_False _Py_TAGPTR_FALSE

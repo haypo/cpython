@@ -78,10 +78,69 @@ Main changes
 Use tagged pointers
 ===================
 
-* Py_RETURN_NONE
-* Py_RETURN_TRUE
-* Py_RETURN_FALSE
+* Py_None, Py_RETURN_NONE
+* Py_True, Py_RETURN_TRUE
+* Py_False, Py_RETURN_FALSE
 * get_small_int()
+
+
+Compiler
+========
+
+Py_INCREF
+---------
+
+``Py_INCREF(op)``::
+
+    if (_Py_TAGPTR_IS_TAGGED(op)) return;
+
+is compiled to::
+
+    # op = $rdi
+    test   dil,0x7
+    jne    ...
+
+``Py_DECREF(op)`` gets the same test.
+
+Py_TYPE
+-------
+
+``Py_TYPE(op)``::
+
+    switch (_Py_TAGPTR_TAG(op)) {
+    case _Py_TAGPTR_TAG_NONE: return &_PyNone_Type;
+    case _Py_TAGPTR_TAG_TRUE: return &PyBool_Type;
+    case _Py_TAGPTR_TAG_FALSE: return &PyBool_Type;
+    case _Py_TAGPTR_TAG_INT: return &PyLong_Type;
+    default:
+        Py_UNREACHABLE();
+    }
+
+becomes a simple table lookup::
+
+    # op -> $rax
+    sub    eax,0x1
+    mov    rbp,QWORD PTR [rax*8+0x6c9a60]
+    # return $rbp (type)
+
+
+Implementation
+==============
+
+_Py_TAGPTR_UNBOX()
+------------------
+
+For a tagged pointer, get a borrowed reference to a singleton.
+
+Tagged integers are limited to the range [-5; 256].
+
+Py_REFCNT()
+-----------
+
+Tagged pointers are immutable: pretent that their reference counter is always
+2. Some functions modify objects in-place if their reference counter is equal
+to 1.
+
 
 Incompatible C API change
 =========================
@@ -109,19 +168,10 @@ Use::
 TODO
 ====
 
-* Float as tagged pointer
-* Optimize int + int in ceval?
+* Latin1 character singleton as tagged pointer? Need to patch 16k lines
+  of unicodeobject.c to add UNBOX calls.
+* Float as tagged pointer? _Py_TAGPTR_UNBOX() returns a borrowed reference.
 * Fix test_gdb: implemented tagged pointer in python-gdb.py.
-* Fix Modules/_elementtree.c::
-
-    /* macros used to store 'join' flags in string object pointers.  note
-       that all use of text and tail as object pointers must be wrapped in
-       JOIN_OBJ.  see comments in the ElementObject definition for more
-       info. */
-    #define JOIN_GET(p) ((uintptr_t) (p) & 1)
-    #define JOIN_SET(p, flag) ((void*) ((uintptr_t) (JOIN_OBJ(p)) | (flag)))
-    #define JOIN_OBJ(p) ((PyObject*) ((uintptr_t) (p) & ~(uintptr_t)1))
-
 
 
 Previous attempt

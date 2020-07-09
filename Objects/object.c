@@ -26,17 +26,6 @@ _Py_IDENTIFIER(__dir__);
 _Py_IDENTIFIER(__isabstractmethod__);
 
 
-static PyObject* _Py_TAGPTR_GET_SINGLETON(const PyObject *op)
-{
-    assert(_Py_TAGPTR_TAG(op) == _Py_TAGPTR_SINGLETON);
-    switch (_Py_TAGPTR_VALUE(op)) {
-    case _Py_TAGPTR_SINGLETON_NONE: return &_Py_NoneStruct;
-    case _Py_TAGPTR_SINGLETON_TRUE: return ((PyObject *) &_Py_TrueStruct);
-    case _Py_TAGPTR_SINGLETON_FALSE: return ((PyObject *) &_Py_FalseStruct);
-    default: Py_UNREACHABLE();
-    }
-}
-
 static PyObject *
 get_small_int(int ival)
 {
@@ -46,15 +35,31 @@ get_small_int(int ival)
 }
 
 
+PyTypeObject*
+_Py_TAGPTR_TYPE(const PyObject *op)
+{
+    // GCC is able to optimize this function as a table lookup
+    assert(_Py_TAGPTR_IS_TAGGED(op));
+    switch (_Py_TAGPTR_TAG(op)) {
+    case _Py_TAGPTR_TAG_NONE: return &_PyNone_Type;
+    case _Py_TAGPTR_TAG_TRUE: return &PyBool_Type;
+    case _Py_TAGPTR_TAG_FALSE: return &PyBool_Type;
+    case _Py_TAGPTR_TAG_INT: return &PyLong_Type;
+    default:
+        Py_UNREACHABLE();
+    }
+}
+
+
+// For a tagged pointer, get a borrowed reference to a singleton.
 PyObject* _Py_TAGPTR_UNBOX(PyObject *op)
 {
     switch (_Py_TAGPTR_TAG(op)) {
-    case _Py_TAGPTR_UNTAGGED:
-        return op;
-    case _Py_TAGPTR_SINGLETON:
-        return _Py_TAGPTR_GET_SINGLETON(op);
-    case _Py_TAGPTR_INT:
-        return get_small_int(_Py_TAGPTR_INT_VALUE(op));
+    case _Py_TAGPTR_TAG_UNTAGGED: return op;
+    case _Py_TAGPTR_TAG_NONE: return &_Py_NoneStruct;
+    case _Py_TAGPTR_TAG_TRUE: return (PyObject *)&_Py_TrueStruct;
+    case _Py_TAGPTR_TAG_FALSE: return (PyObject *)&_Py_FalseStruct;
+    case _Py_TAGPTR_TAG_INT: return get_small_int(_Py_TAGPTR_INT_VALUE(op));
     default:
         Py_UNREACHABLE();
     }
@@ -66,7 +71,7 @@ _Py_TAGPTR_SIZE(const PyObject *op)
     assert(_Py_TAGPTR_IS_TAGGED(op));
     switch(_Py_TAGPTR_TAG(op))
     {
-    case _Py_TAGPTR_INT:
+    case _Py_TAGPTR_TAG_INT:
     {
         int value = _Py_TAGPTR_INT_VALUE(op);
         if (value > 0) {
@@ -80,36 +85,12 @@ _Py_TAGPTR_SIZE(const PyObject *op)
         }
         break;
     }
-    case _Py_TAGPTR_SINGLETON:
-        switch (_Py_TAGPTR_VALUE(op)) {
-        case _Py_TAGPTR_SINGLETON_TRUE: return 1;
-        case _Py_TAGPTR_SINGLETON_FALSE: return 0;
-        default: break;
-        }
-        break;
-
+    case _Py_TAGPTR_TAG_TRUE: return 1;
+    case _Py_TAGPTR_TAG_FALSE: return 0;
     default:
         break;
     }
     Py_UNREACHABLE();
-}
-
-
-PyTypeObject*
-_Py_TAGPTR_TYPE(const PyObject *op)
-{
-    assert(_Py_TAGPTR_IS_TAGGED(op));
-    switch (_Py_TAGPTR_TAG(op)) {
-    case _Py_TAGPTR_INT:
-        return &PyLong_Type;
-    case _Py_TAGPTR_SINGLETON:
-    {
-        PyObject *unboxed = _Py_TAGPTR_GET_SINGLETON(op);
-        return unboxed->ob_type;
-    }
-    default:
-        Py_UNREACHABLE();
-    }
 }
 
 
