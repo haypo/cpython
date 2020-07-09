@@ -29,6 +29,20 @@ Code::
     print(size((None, None, None)), "bytes")
 
 
+Optimize 1+1
+============
+
+Optimize int + int (BINARY_ADD) for tagged pointers in ceval.c.
+
+Microbenchmark::
+
+    env/bin/python -m pyperf timeit -s 'x=1; y=2' 'x+y' --duplicate=1024
+
+Result::
+
+    [ref] 14.3 ns +- 0.2 ns -> [optim] 8.76 ns +- 0.21 ns: 1.63x faster (-39%)
+
+
 Benchmark
 =========
 
