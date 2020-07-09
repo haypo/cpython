@@ -350,11 +350,11 @@ class SysModuleTest(unittest.TestCase):
         # the reference count to increase by 2 instead of 1.
         global n
         self.assertRaises(TypeError, sys.getrefcount)
-        c = sys.getrefcount(None)
-        n = None
-        self.assertEqual(sys.getrefcount(None), c+1)
+        c = sys.getrefcount('abc')
+        n = 'abc'
+        self.assertEqual(sys.getrefcount('abc'), c+1)
         del n
-        self.assertEqual(sys.getrefcount(None), c)
+        self.assertEqual(sys.getrefcount('abc'), c)
         if hasattr(sys, "gettotalrefcount"):
             self.assertIsInstance(sys.gettotalrefcount(), int)
 
@@ -1086,10 +1086,11 @@ class SizeofTest(unittest.TestCase):
 
     def test_gc_head_size(self):
         # Check that the gc header size is added to objects tracked by the gc.
+        size = test.support.calcobjsize
         vsize = test.support.calcvobjsize
         gc_header_size = self.gc_headsize
-        # bool objects are not gc tracked
-        self.assertEqual(sys.getsizeof(True), vsize('') + self.longdigit)
+        # str objects are not gc tracked
+        self.assertEqual(sys.getsizeof('abc'), size("nnbP") + 3 + 1)
         # but lists are
         self.assertEqual(sys.getsizeof([]), vsize('Pn') + gc_header_size)
 
@@ -1126,8 +1127,8 @@ class SizeofTest(unittest.TestCase):
 
     def test_default(self):
         size = test.support.calcvobjsize
-        self.assertEqual(sys.getsizeof(True), size('') + self.longdigit)
-        self.assertEqual(sys.getsizeof(True, -1), size('') + self.longdigit)
+        self.assertEqual(sys.getsizeof(True), 0)
+        self.assertEqual(sys.getsizeof(True, -1), 0)
 
     def test_objecttypes(self):
         # check all types defined in Objects/
@@ -1135,8 +1136,15 @@ class SizeofTest(unittest.TestCase):
         size = test.support.calcobjsize
         vsize = test.support.calcvobjsize
         check = self.check_sizeof
-        # bool
-        check(True, vsize('') + self.longdigit)
+
+        # tagged pointers
+        check(None, 0)
+        check(True, 0)
+        check(False, 0)
+        check(0, 0)
+        check(1, 0)
+        check(-1, 0)
+
         # buffer
         # XXX
         # builtin_function_or_method
@@ -1273,17 +1281,12 @@ class SizeofTest(unittest.TestCase):
         # listreverseiterator (list)
         check(reversed([]), size('nP'))
         # int
-        check(0, vsize(''))
-        check(1, vsize('') + self.longdigit)
-        check(-1, vsize('') + self.longdigit)
         PyLong_BASE = 2**sys.int_info.bits_per_digit
         check(int(PyLong_BASE), vsize('') + 2*self.longdigit)
         check(int(PyLong_BASE**2-1), vsize('') + 2*self.longdigit)
         check(int(PyLong_BASE**2), vsize('') + 3*self.longdigit)
         # module
         check(unittest, size('PnPPP'))
-        # None
-        check(None, size(''))
         # NotImplementedType
         check(NotImplemented, size(''))
         # object
