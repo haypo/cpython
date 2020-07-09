@@ -25,34 +25,59 @@ class int "PyObject *" "&PyLong_Type"
 _Py_IDENTIFIER(little);
 _Py_IDENTIFIER(big);
 
+static inline int
+get_tagged_value(PyObject *op, long *value)
+{
+    switch (_Py_TAGPTR_TAG(op)) {
+    case _Py_TAGPTR_TAG_UNTAGGED:
+        if (PyLong_Check(op)) {
+            PyLongObject *v = (PyLongObject*)op;
+            Py_ssize_t size = v->ob_base.ob_size;
+            switch (size)
+            {
+            case 0: *value = 0; return 1;
+            case 1: *value = (long)v->ob_digit[0]; return 1;
+            case -1: *value = -(long)(v->ob_digit[0]); return 1;
+            default: break;
+            }
+        }
+        break;
+    case _Py_TAGPTR_TAG_TRUE:
+        *value = 1;
+        return 1;
+    case _Py_TAGPTR_TAG_FALSE:
+        *value = 0;
+        return 1;
+    case _Py_TAGPTR_TAG_INT:
+        *value = _Py_TAGPTR_INT_VALUE(op);
+        return 1;
+    default: break;
+    }
+    // Initialize value to make compiler warnings quiet
+    *value = -1;
+    return 0;
+}
+
+static inline long
+tagged_value(PyObject *op)
+{
+    long value;
+#ifdef NDEBUG
+    (void)get_tagged_value(op, &value);
+#else
+    int res = get_tagged_value(op, &value);
+    assert(res == 1);
+#endif
+    return value;
+}
+
 /* convert a PyLong of size 1, 0 or -1 to an sdigit */
 static inline sdigit MEDIUM_VALUE(PyLongObject *x)
 {
-    switch(_Py_TAGPTR_TAG((PyObject*)x))
-    {
-    case _Py_TAGPTR_TAG_INT:
-        return _Py_TAGPTR_INT_VALUE((PyObject*)x);
-    case _Py_TAGPTR_TAG_TRUE:
-        return 1;
-    case _Py_TAGPTR_TAG_FALSE:
-        return 0;
-    case _Py_TAGPTR_TAG_UNTAGGED:
-        x = (PyLongObject *)_Py_TAGPTR_UNBOX((PyObject*)x);
-        Py_ssize_t size = Py_SIZE(x);
-        assert(-1 <= size && size <= 1);
-        if (size > 0) {
-            return (sdigit)x->ob_digit[0];
-        }
-        else if (size == 0) {
-            return 0;
-        }
-        else {
-            return -(sdigit)x->ob_digit[0];
-        }
-        break;
-    default: break;
-    }
-    Py_UNREACHABLE();
+    long value = tagged_value((PyObject*)x);
+    assert(-(long)PyLong_BASE < value);
+    assert(value < PyLong_BASE);
+    return (sdigit)value;
 }
 
 #define TAGGED_ZERO _Py_TAGPTR_INT(0)
@@ -201,6 +226,17 @@ _PyLong_Copy(PyLongObject *src)
 }
 
 /* Create a new int object from a C long int */
+
+static inline unsigned long abs_long(long value) {
+    if (value < 0) {
+        /* negate: can't write this as abs_ival = -ival since that
+           invokes undefined behaviour when ival is LONG_MIN */
+        return 0U-(unsigned long)value;
+    }
+    else {
+        return (unsigned long)value;
+    }
+}
 
 PyObject *
 PyLong_FromLong(long ival)
@@ -425,7 +461,12 @@ PyLong_AsLongAndOverflow(PyObject *vv, int *overflow)
             return -1;
         decref_v = v;
     }
-    v = (PyLongObject *)_Py_TAGPTR_UNBOX((PyObject*)v);
+
+    long unboxed;
+    if (get_tagged_value((PyObject*)v, &unboxed)) {
+        return unboxed;
+    }
+    assert(!_Py_TAGPTR_IS_TAGGED((PyObject *)v));
 
     res = -1;
     i = Py_SIZE(v);
@@ -517,7 +558,10 @@ _PyLong_AsInt(PyObject *obj)
 Py_ssize_t
 PyLong_AsSsize_t(PyObject *vv)
 {
-    vv = _Py_TAGPTR_UNBOX(vv);
+    long unboxed;
+    if (get_tagged_value(vv, &unboxed)) {
+        return unboxed;
+    }
 
     PyLongObject *v;
     size_t x, prev;
@@ -532,6 +576,7 @@ PyLong_AsSsize_t(PyObject *vv)
         PyErr_SetString(PyExc_TypeError, "an integer is required");
         return -1;
     }
+    assert(!_Py_TAGPTR_IS_TAGGED(vv));
 
     v = (PyLongObject *)vv;
     i = Py_SIZE(v);
@@ -575,10 +620,13 @@ PyLong_AsSsize_t(PyObject *vv)
 unsigned long
 PyLong_AsUnsignedLong(PyObject *vv)
 {
-    vv = _Py_TAGPTR_UNBOX(vv);
-    PyLongObject *v;
-    unsigned long x, prev;
-    Py_ssize_t i;
+    long unboxed;
+    if (get_tagged_value(vv, &unboxed)) {
+        if (unboxed < 0) {
+            goto negative;
+        }
+        return (unsigned long)unboxed;
+    }
 
     if (vv == NULL) {
         PyErr_BadInternalCall();
@@ -588,21 +636,20 @@ PyLong_AsUnsignedLong(PyObject *vv)
         PyErr_SetString(PyExc_TypeError, "an integer is required");
         return (unsigned long)-1;
     }
+    assert(!_Py_TAGPTR_IS_TAGGED(vv));
 
-    v = (PyLongObject *)vv;
-    i = Py_SIZE(v);
-    x = 0;
+    PyLongObject *v = (PyLongObject *)vv;
+    Py_ssize_t i = Py_SIZE(v);
+    unsigned long x = 0;
     if (i < 0) {
-        PyErr_SetString(PyExc_OverflowError,
-                        "can't convert negative value to unsigned int");
-        return (unsigned long) -1;
+        goto negative;
     }
     switch (i) {
     case 0: return 0;
     case 1: return v->ob_digit[0];
     }
     while (--i >= 0) {
-        prev = x;
+        unsigned long prev = x;
         x = (x << PyLong_SHIFT) | v->ob_digit[i];
         if ((x >> PyLong_SHIFT) != prev) {
             PyErr_SetString(PyExc_OverflowError,
@@ -612,6 +659,11 @@ PyLong_AsUnsignedLong(PyObject *vv)
         }
     }
     return x;
+
+negative:
+    PyErr_SetString(PyExc_OverflowError,
+                    "can't convert negative value to unsigned int");
+    return (unsigned long) -1;
 }
 
 /* Get a C size_t from an int object. Returns (size_t)-1 and sets
@@ -620,7 +672,16 @@ PyLong_AsUnsignedLong(PyObject *vv)
 size_t
 PyLong_AsSize_t(PyObject *vv)
 {
-    vv = _Py_TAGPTR_UNBOX(vv);
+    long unboxed;
+    if (get_tagged_value(vv, &unboxed)) {
+        if (unboxed < 0) {
+            PyErr_SetString(PyExc_OverflowError,
+                       "can't convert negative value to size_t");
+            return (size_t) -1;
+        }
+        return (size_t)unboxed;
+    }
+
     PyLongObject *v;
     size_t x, prev;
     Py_ssize_t i;
@@ -633,6 +694,7 @@ PyLong_AsSize_t(PyObject *vv)
         PyErr_SetString(PyExc_TypeError, "an integer is required");
         return (size_t)-1;
     }
+    assert(!_Py_TAGPTR_IS_TAGGED(vv));
 
     v = (PyLongObject *)vv;
     i = Py_SIZE(v);
@@ -664,7 +726,11 @@ PyLong_AsSize_t(PyObject *vv)
 static unsigned long
 _PyLong_AsUnsignedLongMask(PyObject *vv)
 {
-    vv = _Py_TAGPTR_UNBOX(vv);
+    long unboxed;
+    if (get_tagged_value(vv, &unboxed)) {
+        return (unsigned long)unboxed;
+    }
+
     PyLongObject *v;
     unsigned long x;
     Py_ssize_t i;
@@ -674,6 +740,8 @@ _PyLong_AsUnsignedLongMask(PyObject *vv)
         PyErr_BadInternalCall();
         return (unsigned long) -1;
     }
+    assert(!_Py_TAGPTR_IS_TAGGED(vv));
+
     v = (PyLongObject *)vv;
     i = Py_SIZE(v);
     switch (i) {
@@ -737,13 +805,21 @@ bit_length_digit(digit x)
 size_t
 _PyLong_NumBits(PyObject *vv)
 {
-    PyLongObject *v = (PyLongObject *)_Py_TAGPTR_UNBOX(vv);
+    long unboxed;
+    if (get_tagged_value(vv, &unboxed)) {
+        unsigned long uval = abs_long(unboxed);
+        return _Py_bit_length(uval);
+    }
+
     size_t result = 0;
     Py_ssize_t ndigits;
     int msd_bits;
 
-    assert(v != NULL);
-    assert(PyLong_Check(v));
+    assert(vv != NULL);
+    assert(PyLong_Check(vv));
+    assert(!_Py_TAGPTR_IS_TAGGED(vv));
+    PyLongObject *v = (PyLongObject *)vv;
+
     ndigits = Py_ABS(Py_SIZE(v));
     assert(ndigits == 0 || v->ob_digit[ndigits - 1] != 0);
     if (ndigits > 0) {
@@ -1178,7 +1254,12 @@ PyLong_AsLongLong(PyObject *vv)
             return -1;
         decref_v = v;
     }
-    v = (PyLongObject*)_Py_TAGPTR_UNBOX((PyObject*)v);
+
+    long unboxed;
+    if (get_tagged_value((PyObject*)v, &unboxed)) {
+        return unboxed;
+    }
+    assert(!_Py_TAGPTR_IS_TAGGED(vv));
 
     res = 0;
     switch(Py_SIZE(v)) {
@@ -1212,8 +1293,6 @@ PyLong_AsLongLong(PyObject *vv)
 unsigned long long
 PyLong_AsUnsignedLongLong(PyObject *vv)
 {
-    vv = _Py_TAGPTR_UNBOX(vv);
-    PyLongObject *v;
     unsigned long long bytes;
     int res;
 
@@ -1221,12 +1300,24 @@ PyLong_AsUnsignedLongLong(PyObject *vv)
         PyErr_BadInternalCall();
         return (unsigned long long)-1;
     }
+
+    long unboxed;
+    if (get_tagged_value((PyObject*)vv, &unboxed)) {
+        if (unboxed < 0) {
+            PyErr_SetString(PyExc_OverflowError,
+                            "can't convert negative int to unsigned");
+            return -1;
+        }
+        return (unsigned long long)unboxed;
+    }
+
     if (!PyLong_Check(vv)) {
         PyErr_SetString(PyExc_TypeError, "an integer is required");
         return (unsigned long long)-1;
     }
+    assert(!_Py_TAGPTR_IS_TAGGED(vv));
+    PyLongObject *v = (PyLongObject*)vv;
 
-    v = (PyLongObject*)vv;
     switch(Py_SIZE(v)) {
     case 0: return 0;
     case 1: return v->ob_digit[0];
@@ -1256,7 +1347,14 @@ _PyLong_AsUnsignedLongLongMask(PyObject *vv)
         PyErr_BadInternalCall();
         return (unsigned long long) -1;
     }
-    PyLongObject *v = (PyLongObject *)_Py_TAGPTR_UNBOX(vv);
+
+    long unboxed;
+    if (get_tagged_value((PyObject*)vv, &unboxed)) {
+        return (unsigned long long)unboxed;
+    }
+    assert(!_Py_TAGPTR_IS_TAGGED(vv));
+    PyLongObject *v = (PyLongObject *)vv;
+
     switch(Py_SIZE(v)) {
     case 0: return 0;
     case 1: return v->ob_digit[0];
@@ -1334,7 +1432,12 @@ PyLong_AsLongLongAndOverflow(PyObject *vv, int *overflow)
             return -1;
         decref_v = v;
     }
-    v = (PyLongObject*)_Py_TAGPTR_UNBOX((PyObject*)v);
+
+    long unboxed;
+    if (get_tagged_value((PyObject*)v, &unboxed)) {
+        return unboxed;
+    }
+    assert(!_Py_TAGPTR_IS_TAGGED((PyObject *)v));
 
     res = -1;
     i = Py_SIZE(v);
@@ -3111,15 +3214,21 @@ x_sub(PyLongObject *a, PyLongObject *b)
 static PyObject *
 long_add(PyLongObject *a, PyLongObject *b)
 {
+    long unboxed_a, unboxed_b;
+    if (get_tagged_value((PyObject*)a, &unboxed_a)
+        && get_tagged_value((PyObject*)b, &unboxed_b))
+    {
+        // FIXME: handle integer overflow
+        long sum = unboxed_a + unboxed_b;
+        return PyLong_FromLong(sum);
+    }
+
     a = (PyLongObject*)_Py_TAGPTR_UNBOX((PyObject*)a);
     b = (PyLongObject*)_Py_TAGPTR_UNBOX((PyObject*)b);
     PyLongObject *z;
 
     CHECK_BINOP(a, b);
 
-    if (Py_ABS(Py_SIZE(a)) <= 1 && Py_ABS(Py_SIZE(b)) <= 1) {
-        return PyLong_FromLong(MEDIUM_VALUE(a) + MEDIUM_VALUE(b));
-    }
     if (Py_SIZE(a) < 0) {
         if (Py_SIZE(b) < 0) {
             z = x_add(a, b);
@@ -3147,15 +3256,21 @@ long_add(PyLongObject *a, PyLongObject *b)
 static PyObject *
 long_sub(PyLongObject *a, PyLongObject *b)
 {
+    long unboxed_a, unboxed_b;
+    if (get_tagged_value((PyObject*)a, &unboxed_a)
+        && get_tagged_value((PyObject*)b, &unboxed_b))
+    {
+        // FIXME: handle integer overflow
+        long diff = unboxed_a - unboxed_b;
+        return PyLong_FromLong(diff);
+    }
+
     a = (PyLongObject*)_Py_TAGPTR_UNBOX((PyObject*)a);
     b = (PyLongObject*)_Py_TAGPTR_UNBOX((PyObject*)b);
     PyLongObject *z;
 
     CHECK_BINOP(a, b);
 
-    if (Py_ABS(Py_SIZE(a)) <= 1 && Py_ABS(Py_SIZE(b)) <= 1) {
-        return PyLong_FromLong(MEDIUM_VALUE(a) - MEDIUM_VALUE(b));
-    }
     if (Py_SIZE(a) < 0) {
         if (Py_SIZE(b) < 0) {
             z = x_sub(b, a);
@@ -3583,17 +3698,20 @@ k_lopsided_mul(PyLongObject *a, PyLongObject *b)
 static PyObject *
 long_mul(PyLongObject *a, PyLongObject *b)
 {
+    long unboxed_a, unboxed_b;
+    if (get_tagged_value((PyObject*)a, &unboxed_a)
+        && get_tagged_value((PyObject*)b, &unboxed_b))
+    {
+        // FIXME: handle integer overflow
+        long long product = unboxed_a * unboxed_b;
+        return PyLong_FromLongLong(product);
+    }
+
     a = (PyLongObject*)_Py_TAGPTR_UNBOX((PyObject*)a);
     b = (PyLongObject*)_Py_TAGPTR_UNBOX((PyObject*)b);
     PyLongObject *z;
 
     CHECK_BINOP(a, b);
-
-    /* fast path for single-digit multiplication */
-    if (Py_ABS(Py_SIZE(a)) <= 1 && Py_ABS(Py_SIZE(b)) <= 1) {
-        stwodigits v = (stwodigits)(MEDIUM_VALUE(a)) * MEDIUM_VALUE(b);
-        return PyLong_FromLongLong((long long)v);
-    }
 
     z = k_mul(a, b);
     /* Negate if exactly one of the inputs is negative. */
@@ -3605,51 +3723,63 @@ long_mul(PyLongObject *a, PyLongObject *b)
     return (PyObject *)z;
 }
 
+static inline int
+same_sign(long x, long y)
+{
+    return ((x >= 0) && (y >= 0)) || ((x < 0) && (y < 0));
+}
+
 /* Fast modulo division for single-digit longs. */
 static PyObject *
 fast_mod(PyLongObject *a, PyLongObject *b)
 {
-    a = (PyLongObject*)_Py_TAGPTR_UNBOX((PyObject*)a);
-    b = (PyLongObject*)_Py_TAGPTR_UNBOX((PyObject*)b);
-    sdigit left = a->ob_digit[0];
-    sdigit right = b->ob_digit[0];
-    sdigit mod;
+    long left = tagged_value((PyObject*)a);
+    long right = tagged_value((PyObject*)b);
+    long mod;
 
-    assert(Py_ABS(Py_SIZE(a)) == 1);
-    assert(Py_ABS(Py_SIZE(b)) == 1);
+    if (right == 0) {
+        PyErr_SetString(PyExc_ZeroDivisionError,
+                        "integer division or modulo by zero");
+        return NULL;
+    }
 
-    if (Py_SIZE(a) == Py_SIZE(b)) {
+    // FIXME: handle integer overflow
+    long aleft = Py_ABS(left);
+    long aright = Py_ABS(right);
+    if (same_sign(left, right)) {
         /* 'a' and 'b' have the same sign. */
-        mod = left % right;
+        mod = aleft % aright;
     }
     else {
         /* Either 'a' or 'b' is negative. */
-        mod = right - 1 - (left - 1) % right;
+        mod = aright - 1 - (aleft - 1) % aright;
+    }
+    if (right < 0) {
+        mod = -mod;
     }
 
-    return PyLong_FromLong(mod * (sdigit)Py_SIZE(b));
+    return PyLong_FromLong(mod);
 }
 
 /* Fast floor division for single-digit longs. */
 static PyObject *
-fast_floor_div(PyLongObject *a, PyLongObject *b)
+fast_floor_div(PyObject *a, PyObject *b)
 {
-    a = (PyLongObject*)_Py_TAGPTR_UNBOX((PyObject*)a);
-    b = (PyLongObject*)_Py_TAGPTR_UNBOX((PyObject*)b);
-    sdigit left = a->ob_digit[0];
-    sdigit right = b->ob_digit[0];
-    sdigit div;
+    long left = tagged_value(a);
+    assert(left != 0);
+    long right = tagged_value(b);
+    assert(right != 0);
 
-    assert(Py_ABS(Py_SIZE(a)) == 1);
-    assert(Py_ABS(Py_SIZE(b)) == 1);
-
-    if (Py_SIZE(a) == Py_SIZE(b)) {
+    long aleft = Py_ABS(left);
+    long aright = Py_ABS(right);
+    long div;
+    if (same_sign(left, right)) {
         /* 'a' and 'b' have the same sign. */
-        div = left / right;
+        div = aleft / aright;
     }
     else {
         /* Either 'a' or 'b' is negative. */
-        div = -1 - (left - 1) / right;
+        div = -1 - (aleft - 1) / aright;
     }
 
     return PyLong_FromLong(div);
@@ -3686,7 +3816,7 @@ l_divmod(PyLongObject *v, PyLongObject *w,
         /* Fast path for single-digit longs */
         div = NULL;
         if (pdiv != NULL) {
-            div = (PyLongObject *)fast_floor_div(v, w);
+            div = (PyLongObject *)fast_floor_div((PyObject*)v, (PyObject*)w);
             if (div == NULL) {
                 return -1;
             }
@@ -3743,18 +3873,26 @@ l_divmod(PyLongObject *v, PyLongObject *w,
 static PyObject *
 long_div(PyObject *a, PyObject *b)
 {
+    long unboxed_a, unboxed_b;
+    if (get_tagged_value((PyObject*)a, &unboxed_a)
+        && get_tagged_value((PyObject*)b, &unboxed_b)
+        // FIXME: allow a==0 and/or b==0?
+        && unboxed_a != 0
+        && unboxed_b != 0)
+    {
+        // FIXME: inline code
+        return fast_floor_div(a, b);
+    }
+
     a = _Py_TAGPTR_UNBOX(a);
     b = _Py_TAGPTR_UNBOX(b);
-    PyLongObject *div;
 
     CHECK_BINOP(a, b);
 
-    if (Py_ABS(Py_SIZE(a)) == 1 && Py_ABS(Py_SIZE(b)) == 1) {
-        return fast_floor_div((PyLongObject*)a, (PyLongObject*)b);
-    }
-
-    if (l_divmod((PyLongObject*)a, (PyLongObject*)b, &div, NULL) < 0)
+    PyLongObject *div;
+    if (l_divmod((PyLongObject*)a, (PyLongObject*)b, &div, NULL) < 0) {
         div = NULL;
+    }
     return (PyObject *)div;
 }
 
@@ -4026,18 +4164,26 @@ long_true_divide(PyObject *v, PyObject *w)
 static PyObject *
 long_mod(PyObject *a, PyObject *b)
 {
-    a = _Py_TAGPTR_UNBOX(a);
-    b = _Py_TAGPTR_UNBOX(b);
-    PyLongObject *mod;
-
-    CHECK_BINOP(a, b);
-
-    if (Py_ABS(Py_SIZE(a)) == 1 && Py_ABS(Py_SIZE(b)) == 1) {
+    long unboxed_a, unboxed_b;
+    if (get_tagged_value((PyObject*)a, &unboxed_a)
+        && get_tagged_value((PyObject*)b, &unboxed_b)
+        // FIXME: allow a==0 and/or b==0?
+        && unboxed_a != 0
+        && unboxed_b != 0)
+    {
+        // FIXME: inline fast_mod()
         return fast_mod((PyLongObject*)a, (PyLongObject*)b);
     }
 
-    if (l_divmod((PyLongObject*)a, (PyLongObject*)b, NULL, &mod) < 0)
+    a = _Py_TAGPTR_UNBOX(a);
+    b = _Py_TAGPTR_UNBOX(b);
+
+    CHECK_BINOP(a, b);
+
+    PyLongObject *mod;
+    if (l_divmod((PyLongObject*)a, (PyLongObject*)b, NULL, &mod) < 0) {
         mod = NULL;
+    }
     return (PyObject *)mod;
 }
 
@@ -4386,13 +4532,19 @@ long_invert(PyLongObject *v)
 static PyObject *
 long_neg(PyLongObject *v)
 {
-    v = (PyLongObject *)_Py_TAGPTR_UNBOX((PyObject*)v);
-    PyLongObject *z;
-    if (Py_ABS(Py_SIZE(v)) <= 1)
-        return PyLong_FromLong(-MEDIUM_VALUE(v));
-    z = (PyLongObject *)_PyLong_Copy(v);
-    if (z != NULL)
-        Py_SET_SIZE(z, -(Py_SIZE(v)));
+    long unboxed;
+    if (get_tagged_value((PyObject*)v, &unboxed)) {
+        // FIXME: fix integer overflow
+        return PyLong_FromLong(-unboxed);
+    }
+    assert(!_Py_TAGPTR_IS_TAGGED((PyObject *)v));
+
+    PyLongObject *z = (PyLongObject *)_PyLong_Copy(v);
+    if (z == NULL) {
+        return NULL;
+    }
+    assert(Py_REFCNT(z) == 1);
+    Py_SET_SIZE(z, -(Py_SIZE(v)));
     return (PyObject *)z;
 }
 
